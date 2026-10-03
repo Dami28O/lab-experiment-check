@@ -2,7 +2,7 @@
 
 Check a lab video against the method it was meant to follow.
 
-![Trial checking a CRISPR delivery recording step by step](docs/screenshot.png)
+![Trial checking a CRISPR delivery recording step by step](docs/screenshot.jpeg)
 
 Upload a paper or protocol and a video of the experiment. Claude reads the method, watches the video, and marks each step as **Verified**, **Contradicted** or **Unverifiable**, with timestamps you can jump to.
 
