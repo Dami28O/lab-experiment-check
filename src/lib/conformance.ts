@@ -1,16 +1,19 @@
-import type { MethodContract, Observation, ProtocolRequirement, VerificationResult } from './types';
+import type { MethodContract, Observation, ProtocolRequirement, Run, VerificationResult } from './types';
 export const MIN_CONFIDENCE = 0.8;
 export function verify(requirement: ProtocolRequirement, observations: Observation[]): VerificationResult {
   const candidates = observations.filter(o => o.stepId === requirement.id).sort((a, b) => b.confidence - a.confidence);
-  const o = candidates.find(v => v.confidence >= MIN_CONFIDENCE);
+  // Agent observations are judged check by check, so they are considered at any confidence; the confidence gate moves to accusations below.
+  const o = candidates.find(v => v.confidence >= MIN_CONFIDENCE || v.checkResults);
   const evidence = candidates.flatMap(v => v.evidence);
   const unknown = (reason: string, missingEvidence: string[]): VerificationResult => ({ status: 'unverifiable', reason, missingEvidence: [...new Set(missingEvidence)], evidence });
   if (!o) return unknown(candidates.length ? 'Observation confidence is below the verification threshold.' : 'This requirement is not established by the recorded window.', requirement.requiredEvidence?.length ? requirement.requiredEvidence : requirement.checks?.length ? requirement.checks : ['video evidence of this step']);
   const conflict = (expected: unknown, observed: unknown): VerificationResult => ({ status: 'contradicted', confidence: o.confidence, expected, observed, evidence: o.evidence });
   if (o.checkResults) {
     // Agent observations report each methodology condition separately; the rule below still decides the state.
+    // "confirmed" already means the frames clearly show it, so every check confirmed with evidence verifies the step.
+    // An accusation needs more: a contradicted check counts only at MIN_CONFIDENCE, otherwise the step stays unverifiable.
     const deviation = o.checkResults.find(c => c.result === 'contradicted');
-    if (deviation) return conflict(deviation.check, deviation.note);
+    if (deviation && o.confidence >= MIN_CONFIDENCE) return conflict(deviation.check, deviation.note);
     const unresolved = o.checkResults.filter(c => c.result !== 'confirmed').map(c => c.check);
     const unchecked = (requirement.checks ?? []).filter(c => !o.checkResults!.some(r => r.check === c));
     if (!o.evidence.length) unresolved.push('timestamped evidence');
@@ -47,6 +50,65 @@ export function verify(requirement: ProtocolRequirement, observations: Observati
 export function verifyMethod(method: MethodContract, observations: Observation[]): Record<string, VerificationResult> {
   return Object.fromEntries(method.requirements.map(r => [r.id, verify(r, observations)]));
 }
+/** Seconds of footage between a missing step's located neighbours that still counts as "no room for it". */
+export const GAP_SECONDS = 2;
+/** A wait longer than this is routinely cut from recordings, so its absence is never called a skip. */
+export const LONG_WAIT_SECONDS = 60;
+/** How far a step's start may precede an earlier step's start (or follow a later one's) before it is out of order. */
+export const ORDER_TOLERANCE_SECONDS = 2;
+
+/** Per-step verdicts, plus the sequence rules for agent runs, over the steps the agent located:
+ * - out of order: a located step outside the longest run of steps located in protocol order, by more than the
+ *   tolerance, flagged only at MIN_CONFIDENCE (it is an accusation);
+ * - skipped: an unlocated step the agent saw not done, whose in-order neighbours leave at most GAP_SECONDS for it,
+ *   and which is not a wait longer than LONG_WAIT_SECONDS.
+ * Missing footage alone is still never a skip: every condition must hold.
+ */
+export function verifyRun(method: MethodContract, run: Pick<Run, 'observations' | 'duration' | 'absences'>): Record<string, VerificationResult> {
+  const results = verifyMethod(method, run.observations);
+  const steps = [...method.requirements].sort((a, b) => a.order - b.order);
+  const placed = steps.map(r => run.observations
+    .filter(o => o.stepId === r.id && o.provenance === 'claude_agent')
+    .sort((a, b) => b.confidence - a.confidence)[0]);
+  const inOrder = longestInOrder(placed);
+  const ordered = placed.map((o, i) => o && (inOrder.has(i) ? o : undefined));
+  steps.forEach((r, i) => {
+    const o = placed[i];
+    if (!o || inOrder.has(i)) return;
+    const late = ordered.slice(0, i).find(a => a && a.timestampStart > o.timestampStart + ORDER_TOLERANCE_SECONDS);
+    const early = ordered.slice(i + 1).find(a => a && a.timestampStart < o.timestampStart - ORDER_TOLERANCE_SECONDS);
+    const anchor = late ?? early;
+    if (!anchor) { ordered[i] = o; return; }
+    if (results[r.id].status === 'contradicted' || o.confidence < MIN_CONFIDENCE) return;
+    results[r.id] = { status: 'contradicted', confidence: o.confidence, expected: `${late ? 'after' : 'before'} ${anchor.stepId}`, observed: `started at ${o.timestampStart.toFixed(1)} s; ${anchor.stepId} started at ${anchor.timestampStart.toFixed(1)} s`, evidence: o.evidence };
+  });
+  for (const absence of run.absences ?? []) {
+    const i = steps.findIndex(r => r.id === absence.stepId);
+    if (i < 0 || absence.reason !== 'not_performed' || waitSeconds(steps[i].description) > LONG_WAIT_SECONDS || run.observations.some(o => o.stepId === absence.stepId)) continue;
+    const prev = ordered.slice(0, i).filter(Boolean).at(-1), next = ordered.slice(i + 1).find(Boolean);
+    const between: [number, number] = [prev?.timestampEnd ?? 0, next?.timestampStart ?? run.duration];
+    if (between[1] - between[0] > GAP_SECONDS) continue;
+    results[absence.stepId] = { status: 'skipped', confidence: absence.confidence, reason: absence.note, between, evidence: [...prev?.evidence ?? [], ...next?.evidence ?? []] };
+  }
+  return results;
+}
+
+/** The longest wait a step's wording asks for, in seconds ("incubate 20 min" -> 1200); 0 if it states none. */
+export function waitSeconds(text: string): number {
+  const units: Record<string, number> = { s: 1, sec: 1, secs: 1, second: 1, seconds: 1, min: 60, mins: 60, minute: 60, minutes: 60, h: 3600, hr: 3600, hrs: 3600, hour: 3600, hours: 3600 };
+  return Math.max(0, ...[...text.matchAll(/(\d+(?:\.\d+)?)\s*(seconds?|secs?|s|minutes?|mins?|hours?|hrs?|hr|h)\b/gi)].map(m => Number(m[1]) * units[m[2].toLowerCase()]));
+}
+
+/** Indices of the longest subsequence whose start times never decrease in protocol order. */
+function longestInOrder(placed: (Observation | undefined)[]): Set<number> {
+  const idx = placed.flatMap((o, i) => o ? [i] : []);
+  const length = idx.map(() => 1), from = idx.map(() => -1);
+  idx.forEach((i, k) => { for (let j = 0; j < k; j++) if (placed[idx[j]]!.timestampStart <= placed[i]!.timestampStart && length[j] + 1 > length[k]) { length[k] = length[j] + 1; from[k] = j; } });
+  const keep = new Set<number>();
+  for (let k = length.indexOf(Math.max(0, ...length)); k >= 0; k = from[k]) keep.add(idx[k]);
+  return keep;
+}
+
 const weights = { informational: 1, important: 2, critical: 3 };
 export function evidenceDebt(method: MethodContract, results: Record<string, VerificationResult>) {
   const totalWeight = method.requirements.reduce((n, r) => n + weights[r.criticality], 0);

@@ -1,0 +1,76 @@
+import { describe, expect, it } from 'vitest';
+import { GAP_SECONDS, LONG_WAIT_SECONDS, verifyRun, waitSeconds } from '../src/lib/conformance';
+import type { Absence, MethodContract, Observation } from '../src/lib/types';
+
+const method: MethodContract = { schemaVersion: 1, title: 'Mock', version: '1', source: 'mock', requirements: [1, 2, 3, 4, 5].map(n => ({
+  id: `s${n}`, order: n, title: `Step ${n}`, description: `Step ${n}`, checks: [`Step ${n} visible`], criticality: 'critical' as const, category: 'action' as const
+})) };
+const placed = (n: number, start: number, end: number, confidence = .9): Observation => ({
+  id: `s${n}-agent`, stepId: `s${n}`, timestampStart: start, timestampEnd: end, observed: {}, establishes: [], uncertain: [], confidence, provenance: 'claude_agent',
+  checkResults: [{ check: `Step ${n} visible`, result: 'confirmed', note: '' }], evidence: [{ id: `s${n}-e`, timestamp: start, end: start + 1, description: '', kind: 'video' }]
+});
+const absent = (n: number, reason: Absence['reason'] = 'not_performed', confidence = .9): Absence => ({ stepId: `s${n}`, reason, confidence, note: `Step ${n} not done` });
+const run = (observations: Observation[], absences: Absence[] = [], duration = 60) => verifyRun(method, { observations, absences, duration });
+const statuses = (r: ReturnType<typeof run>) => method.requirements.map(x => r[x.id].status);
+
+describe('Sequence rules', () => {
+  it('flags nothing on a correct, in-order run', () =>
+    expect(statuses(run([placed(1, 0, 10), placed(2, 10, 20), placed(3, 20, 30), placed(4, 30, 40), placed(5, 40, 60)]))).toEqual(Array(5).fill('verified')));
+  it('reports a step skipped when the agent saw it not done and its neighbours leave no room', () => {
+    const r = run([placed(1, 0, 10), placed(2, 10, 20), placed(4, 21, 30), placed(5, 30, 60)], [absent(3)]);
+    expect(r.s3).toMatchObject({ status: 'skipped', between: [20, 21], reason: 'Step 3 not done' });
+  });
+  it('treats overlapping neighbours as no room', () =>
+    expect(run([placed(2, 10, 22), placed(4, 20, 30)], [absent(3)]).s3.status).toBe('skipped'));
+  it('keeps a step unverifiable when there is footage it could be in', () =>
+    expect(run([placed(2, 10, 20), placed(4, 20 + GAP_SECONDS + .5, 30)], [absent(3)]).s3.status).toBe('unverifiable'));
+  it('needs the agent to have seen the step not done', () =>
+    expect(run([placed(2, 10, 20), placed(4, 20, 30)], [absent(3, 'not_visible')]).s3.status).toBe('unverifiable'));
+  it('uses the structure, not the agent\'s confidence number, for skips', () => {
+    expect(run([placed(2, 10, 20, .5), placed(4, 20, 30, .5)], [absent(3, 'not_performed', .5)]).s3.status).toBe('skipped');
+  });
+  it('never calls a long wait skipped: those are cut from recordings', () => {
+    const waiting: MethodContract = { ...method, requirements: method.requirements.map(r => r.id === 's3' ? { ...r, description: 'Incubate at room temperature for 20 min.' } : r) };
+    expect(verifyRun(waiting, { observations: [placed(2, 10, 20), placed(4, 20, 30)], absences: [absent(3)], duration: 60 }).s3.status).toBe('unverifiable');
+    const brief: MethodContract = { ...method, requirements: method.requirements.map(r => r.id === 's3' ? { ...r, description: 'Incubate on ice for 5 seconds.' } : r) };
+    expect(verifyRun(brief, { observations: [placed(2, 10, 20), placed(4, 20, 30)], absences: [absent(3)], duration: 60 }).s3.status).toBe('skipped');
+  });
+  it('reads the longest stated wait from a step', () => {
+    expect(waitSeconds('Incubate at room temperature for 20 min.')).toBe(1200);
+    expect(waitSeconds('Rapidly transfer to 42°C for exactly 5 seconds.')).toBe(5);
+    expect(waitSeconds('Incubate 1-2 hours')).toBe(7200);
+    expect(waitSeconds('Add 5 μL of plasmid DNA.')).toBe(0);
+    expect(waitSeconds(`Wait ${LONG_WAIT_SECONDS} s`)).toBe(LONG_WAIT_SECONDS);
+  });
+  it('verifies a step with every check confirmed, whatever the overall confidence', () =>
+    expect(run([placed(1, 0, 10, .4)]).s1.status).toBe('verified'));
+  it('does not accuse on a low-confidence contradiction or reordering', () => {
+    const wrong = { ...placed(2, 10, 20, .6), checkResults: [{ check: 'Step 2 visible', result: 'contradicted' as const, note: 'wrong tube' }] };
+    expect(run([placed(1, 0, 10), wrong]).s2.status).toBe('unverifiable');
+    expect(run([placed(1, 0, 10), placed(2, 40, 45, .6), placed(3, 10, 20), placed(4, 20, 30)]).s2.status).toBe('verified');
+  });
+  it('measures the first step from the start of the recording and the last to its end', () => {
+    expect(run([placed(2, 1, 10)], [absent(1)]).s1.status).toBe('skipped');
+    expect(run([placed(2, 5, 10)], [absent(1)]).s1.status).toBe('unverifiable');
+    expect(run([placed(4, 30, 59)], [absent(5)], 60).s5.status).toBe('skipped');
+  });
+  it('never reports a skip from missing footage alone', () =>
+    expect(statuses(run([placed(1, 0, 10)]))).toEqual(['verified', 'unverifiable', 'unverifiable', 'unverifiable', 'unverifiable']));
+  it('flags only the step that moved out of order', () => {
+    const r = run([placed(1, 0, 10), placed(2, 40, 45), placed(3, 10, 20), placed(4, 20, 30), placed(5, 45, 60)]);
+    expect(statuses(r)).toEqual(['verified', 'contradicted', 'verified', 'verified', 'verified']);
+    expect(r.s2).toMatchObject({ expected: 'before s3' });
+  });
+  it('tolerates small ordering jitter', () =>
+    expect(statuses(run([placed(1, 0, 10), placed(2, 11, 20), placed(3, 10, 20), placed(4, 20, 30), placed(5, 30, 60)]))).toEqual(Array(5).fill('verified')));
+  it('still uses a slightly jittered step as a neighbour for the skip rule', () =>
+    expect(run([placed(1, 10, 12), placed(2, 9, 21), placed(4, 21, 30)], [absent(3)]).s3.status).toBe('skipped'));
+  it('keeps a contradiction seen on camera rather than replacing it with an ordering one', () => {
+    const wrong = { ...placed(2, 40, 45), checkResults: [{ check: 'Step 2 visible', result: 'contradicted' as const, note: 'wrong tube' }] };
+    expect(run([placed(1, 0, 10), wrong, placed(3, 10, 20)]).s2).toMatchObject({ status: 'contradicted', observed: 'wrong tube' });
+  });
+  it('ignores annotation-assisted observations', () => {
+    const fixture = (n: number, s: number, e: number) => ({ ...placed(n, s, e), provenance: 'annotation_assisted_visual_review' as const });
+    expect(run([fixture(1, 30, 40), fixture(2, 0, 10)]).s1.status).toBe('verified');
+  });
+});

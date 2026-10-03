@@ -37,5 +37,5 @@ export async function agentTurn(client: Anthropic, messages: Anthropic.Beta.Mess
     cache_control: { type: 'ephemeral' },
     system: AGENT_SYSTEM, tools: AGENT_TOOLS, messages
   }).finalMessage();
-  return { content: message.content, stop_reason: message.stop_reason };
+  return { content: message.content, stop_reason: message.stop_reason, usage: message.usage };
 }

@@ -8,3 +8,4 @@ data/downloads/
 artifacts/
 *.tsbuildinfo
 .DS_Store
+data/heldout/

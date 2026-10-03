@@ -1,4 +1,4 @@
-export type Status = 'verified' | 'contradicted' | 'unverifiable';
+export type Status = 'verified' | 'contradicted' | 'skipped' | 'unverifiable';
 export type EvidenceCategory = 'identity' | 'timing' | 'action' | 'ordering';
 export type ProtocolRequirement = {
   id: string; title: string; description: string; order: number;
@@ -22,17 +22,23 @@ export type Observation = {
   /** Agent observations: what happened, checked condition by condition. */
   summary?: string; checkResults?: CheckResult[];
 };
+/** The agent's account of a step it could not locate: watched where it belongs and saw it not done, or could not see. */
+export type Absence = { stepId: string; reason: 'not_performed' | 'not_visible'; confidence: number; note: string };
 export type VerificationResult =
   | { status: 'verified'; confidence: number; evidence: Evidence[] }
   | { status: 'contradicted'; confidence: number; expected: unknown; observed: unknown; evidence: Evidence[] }
+  /** Inferred from absence: the neighbouring steps leave no room for it and the agent saw it not done there. */
+  | { status: 'skipped'; confidence: number; reason: string; between: [number, number]; evidence: Evidence[] }
   | { status: 'unverifiable'; reason: string; missingEvidence: string[]; evidence: Evidence[] };
 export type MediaProvenance = { sourceRevision: string; sourceSha256: string; cachedSha256: string; sourceUrl: string; originalFilename: string; transform: string };
 export type Run = {
   id: string; title: string; subtitle: string; date: string; video: string; duration: number; poster?: string;
   observations: Observation[]; sourceClip?: string; mediaProvenance?: MediaProvenance;
+  /** Agent runs: steps it could not locate, and why. */
+  absences?: Absence[];
 };
 export type ExperimentRecord = {
-  schemaVersion: 2; experimentId: string; generatedAt: string; method: MethodContract; methodHash: string;
+  schemaVersion: 2 | 3; experimentId: string; generatedAt: string; method: MethodContract; methodHash: string;
   run: Run; results: Record<string, VerificationResult>;
   evidenceDebt: ReturnType<typeof import('./conformance').evidenceDebt>;
   observationHash: string; recordHash: string; limitations: string[];

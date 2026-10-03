@@ -3,7 +3,7 @@ import { Button, Collapsible, Empty, Tabs } from '@cloudflare/kumo';
 import { ArrowClockwiseIcon, DownloadSimpleIcon, FileTextIcon } from '@phosphor-icons/react';
 import { notify } from './lib/toast';
 import { cachedAnalysis, samples, time, type Sample } from './lib/demo';
-import { verifyMethod } from './lib/conformance';
+import { verifyRun } from './lib/conformance';
 import { createRecord, keyMoment } from './lib/record';
 import { grabFrame, openVideo } from './lib/frames';
 import type { RecordSnapshot } from './lib/types';
@@ -36,7 +36,7 @@ export default function App() {
   const analysis = page.kind === 'analysis' ? [...analyses, ...sampleAnalyses].find(a => a.id === page.id) : undefined;
   const run = useMemo(() => analysis && videoUrl ? { ...analysis.run, video: videoUrl } : undefined, [analysis, videoUrl]);
   const method = analysis?.method;
-  const results = useMemo(() => analysis ? verifyMethod(analysis.method, analysis.run.observations) : {}, [analysis]);
+  const results = useMemo(() => analysis ? verifyRun(analysis.method, analysis.run) : {}, [analysis]);
 
   useEffect(() => { if (analysis) open(analysis); }, []);
   useEffect(() => { saveAnalyses(analyses); }, [analyses]);
@@ -59,9 +59,11 @@ export default function App() {
   function open(next: Analysis) {
     setPage({ kind: 'analysis', id: next.id }); setTab('execution'); setPlaying(false);
     const first = [...next.run.observations].sort((a, b) => a.timestampStart - b.timestampStart)[0];
-    const contradicted = next.method.requirements.find(r => verifyMethod(next.method, next.run.observations)[r.id]?.status === 'contradicted');
-    const focus = contradicted ? next.run.observations.find(o => o.stepId === contradicted.id) : first;
-    setSelected(focus?.stepId ?? next.method.requirements[0].id); setCurrentTime(focus ? focus.evidence[0]?.timestamp ?? focus.timestampStart : 0);
+    const results = verifyRun(next.method, next.run), flaggedAs = (s: string) => next.method.requirements.find(r => results[r.id]?.status === s);
+    const flagged = flaggedAs('contradicted') ?? flaggedAs('skipped'), gap = flagged && results[flagged.id];
+    const focus = flagged ? next.run.observations.find(o => o.stepId === flagged.id) : first;
+    setSelected(flagged?.id ?? focus?.stepId ?? next.method.requirements[0].id);
+    setCurrentTime(focus ? focus.evidence[0]?.timestamp ?? focus.timestampStart : gap?.status === 'skipped' ? gap.between[0] : 0);
   }
   const seek = useCallback((seconds: number) => { const v = video.current; if (v) v.currentTime = Math.min(seconds, analysis?.run.duration ?? seconds); setCurrentTime(seconds); }, [analysis?.run.duration]);
   const selectStep = useCallback((id: string) => {

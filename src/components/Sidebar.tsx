@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactElement, type ReactNode } from 'react';
 import { Tooltip } from '@cloudflare/kumo';
 import { CaretRightIcon, FlaskIcon, InfoIcon, PlusIcon, SidebarSimpleIcon, TrashIcon } from '@phosphor-icons/react';
-import { verifyMethod } from '../lib/conformance';
+import { verifyRun } from '../lib/conformance';
 import { samples, time, type Sample } from '../lib/demo';
 import type { Analysis } from '../lib/store';
 import type { Status } from '../lib/types';
@@ -12,8 +12,8 @@ const SECTIONS_KEY = 'lens-sidebar-sections';
 const shortcut = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform) ? '⌘B' : 'Ctrl+B';
 
 function overall(a: Analysis): Status {
-  const rr = Object.values(verifyMethod(a.method, a.run.observations));
-  return rr.some(r => r.status === 'contradicted') ? 'contradicted' : rr.every(r => r.status === 'verified') ? 'verified' : 'unverifiable';
+  const rr = Object.values(verifyRun(a.method, a.run));
+  return rr.some(r => r.status === 'contradicted') ? 'contradicted' : rr.some(r => r.status === 'skipped') ? 'skipped' : rr.every(r => r.status === 'verified') ? 'verified' : 'unverifiable';
 }
 
 type Props = {

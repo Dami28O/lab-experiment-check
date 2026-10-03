@@ -1,9 +1,9 @@
-import { CheckIcon, QuestionMarkIcon, WarningIcon } from '@phosphor-icons/react';
+import { CheckIcon, QuestionMarkIcon, SkipForwardIcon, WarningIcon } from '@phosphor-icons/react';
 import type { CheckResult, Status } from '../lib/types';
 const label = (s: Status) => s.charAt(0).toUpperCase() + s.slice(1);
 export function StatusIcon({ status, size = 13 }: { status?: Status; size?: number }) {
   if (!status) return <span className="status-icon pending" style={{ width: size, height: size }} aria-label="Pending"/>;
-  const Icon = status === 'verified' ? CheckIcon : status === 'contradicted' ? WarningIcon : QuestionMarkIcon;
+  const Icon = status === 'verified' ? CheckIcon : status === 'contradicted' ? WarningIcon : status === 'skipped' ? SkipForwardIcon : QuestionMarkIcon;
   return <Icon className={`status-icon ${status}`} size={size} weight="bold" aria-label={label(status)}/>;
 }
 export function StatusLabel({ status }: { status: Status }) { return <span className={`status-label ${status}`}><StatusIcon status={status}/>{label(status)}</span>; }

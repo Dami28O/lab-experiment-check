@@ -65,7 +65,7 @@ export function RecordView({ record, onStep, shareUrl }: { record: ExperimentRec
   const payload = link ?? `lens://record/${record.recordHash}`;
   useEffect(() => { QRCode.toString(payload, { type: 'svg', margin: 0, errorCorrectionLevel: 'M', color: { dark: '#09090b', light: '#0000' } }).then(setQr); }, [payload]);
   const results = method.requirements.map(r => ({ r, result: record.results[r.id] as VerificationResult, o: run.observations.find(o => o.stepId === r.id) }));
-  const counts = { verified: 0, contradicted: 0, unverifiable: 0 } as Record<string, number>;
+  const counts = { verified: 0, contradicted: 0, skipped: 0, unverifiable: 0 } as Record<string, number>;
   for (const { result } of results) counts[result.status]++;
   const located = run.observations.filter(o => method.requirements.some(r => r.id === o.stepId));
   const confidence = located.length ? located.reduce((n, o) => n + o.confidence, 0) / located.length : 0;
@@ -82,7 +82,7 @@ export function RecordView({ record, onStep, shareUrl }: { record: ExperimentRec
       <section className="record-hero">
         <div><span className="hero-figure">{counts.verified}<span className="hero-of">/{results.length}</span></span><span className="hero-label">steps verified</span></div>
         <div><span className="hero-figure">{confidence ? confidence.toFixed(2) : '—'}</span><span className="hero-label">mean confidence · {located.length} steps located</span></div>
-        <ul className="hero-tally">{(['verified', 'contradicted', 'unverifiable'] as const).map(s => <li key={s} className={s}><StatusIcon status={s} size={12}/>{counts[s]} {s}</li>)}</ul>
+        <ul className="hero-tally">{(['verified', 'contradicted', 'skipped', 'unverifiable'] as const).filter(s => s !== 'skipped' || counts.skipped).map(s => <li key={s} className={s}><StatusIcon status={s} size={12}/>{counts[s]} {s}</li>)}</ul>
       </section>
 
       {record.snapshot && (() => {
@@ -103,6 +103,7 @@ export function RecordView({ record, onStep, shareUrl }: { record: ExperimentRec
           <span className="mono step-no">{r.order.toString().padStart(2, '0')}</span>
           <span className="step-main"><strong>{r.title}</strong>
             {result.status === 'contradicted' && <em>Expected {text(result.expected)} — observed {text(result.observed)}</em>}
+            {result.status === 'skipped' && <em>Not performed between {time(result.between[0])} and {time(result.between[1])}: {result.reason}</em>}
             {result.status === 'unverifiable' && <em>{o ? `Not established: ${result.missingEvidence.map(readable).join(', ')}` : 'Not found in the recording'}</em>}
           </span>
           <span className="mono step-window">{o ? `${time(o.timestampStart)}–${time(o.timestampEnd)}` : '–'}</span>

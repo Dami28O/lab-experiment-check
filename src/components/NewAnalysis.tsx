@@ -64,7 +64,7 @@ export function NewAnalysis({ initialSample, claudeReady, onComplete, onOpen }: 
       setOverview(frames);
       setStage('agent');
       const lines: string[] = [];
-      const observations = await runAgent({
+      const { observations, absences } = await runAgent({
         method: contract, duration: video.duration, overview: frames,
         getFrames: (start, end, count) => grabFrames(element, spacedTimes(start, end, count), 768),
         call: messages => post('/api/agent/turn', { messages }),
@@ -79,7 +79,7 @@ export function NewAnalysis({ initialSample, claudeReady, onComplete, onOpen }: 
       if (video.file) await putVideo(id, video.file);
       onComplete({
         id, createdAt: new Date().toISOString(), methodName: method.name, videoName: video.name, method: contract, mode: 'agent', log: lines, videoStored: !!video.file,
-        run: { ...(video.sample?.run ?? { id, title: contract.title, subtitle: video.name, date: new Date().toISOString().slice(0, 10), poster: undefined }), id, title: contract.title, video: video.file ? `idb:${id}` : video.url, duration: video.duration, observations }
+        run: { ...(video.sample?.run ?? { id, title: contract.title, subtitle: video.name, date: new Date().toISOString().slice(0, 10), poster: undefined }), id, title: contract.title, video: video.file ? `idb:${id}` : video.url, duration: video.duration, observations, absences }
       });
     } catch (e) { setError((e as Error).message); setInspecting(undefined); }
   }

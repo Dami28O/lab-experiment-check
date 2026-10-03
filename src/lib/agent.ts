@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import type Anthropic from '@anthropic-ai/sdk';
-import type { MethodContract, Observation } from './types';
+import type { Absence, MethodContract, Observation } from './types';
 
 /** Shared between the browser, the Worker and the evaluation script. No SDK runtime code lives here. */
 type MessageParam = Anthropic.Beta.Messages.BetaMessageParam;
@@ -32,21 +32,40 @@ Read the supplied document (a paper, protocol or notes). Find the experimental p
 For each step:
 - title: a short imperative label, at most six words ("Add reagent 2 to tube").
 - description: the instruction as the document states it, keeping quantities, times and materials.
-- checks: the conditions a camera watching the bench could confirm or refute. Make each one concrete and visual: which vessel receives what, the action performed, the order relative to other steps, a visible change of state. Two to four checks is typical. If a step has nothing visible (e.g. "incubate 20 min"), include a check for what a continuous recording would need to show ("tube left undisturbed for about 20 minutes").
-- caveats: conditions the document requires that video cannot establish, such as sterility, exact volumes, concentrations, temperature, or cell identity.
+- checks: only conditions a camera watching the bench could clearly confirm or refute: the action performed, a vessel or apparatus recognisable by its appearance or position, the order relative to other steps, a visible change of state. Two to four checks is typical. If a step is a wait (e.g. "incubate 20 min"), the check is qualitative: the item is put in place and left there rather than moved on straight away.
+- caveats: everything the document requires that video cannot clearly establish. Always put these here, never in checks:
+  - volumes, amounts, concentrations or any measured quantity (pipette settings, graduations, liquid levels);
+  - identity that depends on reading a label or knowing contents (which reagent, which cell line);
+  - exact counts ("4-5 flicks", "pipette 10 times");
+  - exact durations and temperatures ("for 5 seconds", "20 min", "42°C");
+  - sterility and anything else not visible.
 - criticality: critical if an error would invalidate the experiment, important if it would likely change the result, informational otherwise.
 - category: identity (right material or vessel), timing (durations), ordering (sequence), or action (the physical manipulation).
 
 Keep the document's own step granularity where it has numbered steps. Do not invent steps the document does not describe.`;
 
+/** Conditions this video method cannot clearly establish. A check about one is moved to the caveats whatever the model
+ * wrote. Vessel sizes ("1.5 mL tube", "10 cm dish") identify a vessel and stay; qualitative timing ("left on ice") stays. */
+const UNVERIFIABLE: [reason: string, pattern: RegExp][] = [
+  ['Measured quantity', /\b(volume|amount|concentration|quantity|graduation|liquid level)s?\b|\b(about|approximately|roughly|~)\s*\d+(\.\d+)?\s*(µl|μl|ul|ml|l|mg|µg|μg|ng|g|mm|µm|μm|nm|m)\b|\d+(\.\d+)?\s*(µl|μl|ul|ml|mg|µg|μg|ng|g)\s+of\b/i],
+  ['Label or contents', /\blabel(l?ed|s)?\b|\blegible\b/i],
+  ['Exact count', /\b\d+(\s*(-|–|to)\s*\d+)?\s+(\w+\s+){0,2}(times|flicks|strokes|inversions|taps)\b|\bnumber of\b|\bcount(ed)?\b/i],
+  ['Exact duration or temperature', /\b\d+(\.\d+)?\s*(-|–|to)?\s*\d*\s*(s|secs?|seconds?|mins?|minutes?|h|hrs?|hours?)\b|\d+(\.\d+)?\s*°\s*[cf]\b|\bexactly\b/i],
+];
+export function unverifiableReason(check: string): string | undefined { return UNVERIFIABLE.find(([, p]) => p.test(check))?.[0]; }
+
 export function toContract(extracted: ExtractedMethod, source: string): MethodContract {
   return {
     schemaVersion: 1, title: extracted.title, version: '1.0', source, summary: extracted.summary,
-    requirements: extracted.steps.map((s, i) => ({
-      id: `step-${String(i + 1).padStart(2, '0')}`, order: i + 1, title: s.title, description: s.description,
-      checks: s.checks.length ? s.checks : [`${s.title} is visibly performed`], caveats: s.caveats,
-      criticality: s.criticality, category: s.category
-    }))
+    requirements: extracted.steps.map((s, i) => {
+      const checks = s.checks.filter(c => !unverifiableReason(c));
+      const moved = s.checks.flatMap(c => { const reason = unverifiableReason(c); return reason ? [`${reason}, not verifiable from video: ${c}`] : []; });
+      return {
+        id: `step-${String(i + 1).padStart(2, '0')}`, order: i + 1, title: s.title, description: s.description,
+        checks: checks.length ? checks : [`${s.title} is visibly performed`], caveats: [...s.caveats, ...moved],
+        criticality: s.criticality, category: s.category
+      };
+    })
   };
 }
 
@@ -66,6 +85,9 @@ You receive the methodology (steps with numbered checks) and an overview of the 
 
 For each methodology step:
 1. Locate it: the time window where it is performed, or found=false if you cannot locate it.
+   A step is performed only when its defining action is seen: for "incubate on ice", the tube put into the ice and left there. Being near the apparatus is not doing the step: a tube held over an ice bucket while it is flicked, or carried past it to the next instrument, does not count.
+   Steps often run together in one motion. Place each step only by its own defining action. If that action never happens between the neighbouring steps, the step is not found, even if the neighbours sit right next to each other.
+   If found=false, set absence: "not_performed" only if the recording continuously shows the stretch where this step belongs (between the neighbouring steps you located) and the step is clearly not done there; otherwise "not_visible" (it could have happened out of shot, between sampled frames, or in a part of the procedure the recording does not cover: recordings can be excerpts). Your confidence then rates this judgement. If found=true, set absence to "n/a".
 2. Judge every check against what is visible:
    - confirmed: the frames clearly show it.
    - contradicted: the frames clearly show something incompatible (a different target vessel, a skipped addition in a window you can see, the wrong order).
@@ -103,10 +125,11 @@ export const AGENT_TOOLS: Anthropic.Beta.Messages.BetaTool[] = [
           type: 'array',
           items: {
             type: 'object', additionalProperties: false,
-            required: ['step_id', 'found', 'start_seconds', 'end_seconds', 'summary', 'check_results', 'evidence', 'uncertainties', 'confidence'],
+            required: ['step_id', 'found', 'absence', 'start_seconds', 'end_seconds', 'summary', 'check_results', 'evidence', 'uncertainties', 'confidence'],
             properties: {
               step_id: { type: 'string' },
               found: { type: 'boolean', description: 'Whether the step could be located in the recording.' },
+              absence: { type: 'string', enum: ['n/a', 'not_performed', 'not_visible'], description: 'When found is false: not_performed if the stretch where the step belongs is visible and it is clearly not done there, else not_visible. n/a when found.' },
               start_seconds: { type: 'number', description: '0 if not found.' },
               end_seconds: { type: 'number', description: '0 if not found.' },
               summary: { type: 'string', description: 'What the recording shows for this step, in one or two sentences.' },
@@ -140,7 +163,7 @@ export const AGENT_TOOLS: Anthropic.Beta.Messages.BetaTool[] = [
 
 const findingsSchema = z.object({
   steps: z.array(z.object({
-    step_id: z.string(), found: z.boolean(), start_seconds: z.number(), end_seconds: z.number(), summary: z.string(),
+    step_id: z.string(), found: z.boolean(), absence: z.enum(['n/a', 'not_performed', 'not_visible']), start_seconds: z.number(), end_seconds: z.number(), summary: z.string(),
     check_results: z.array(z.object({ check_index: z.number().int(), result: z.enum(['confirmed', 'contradicted', 'not_visible']), note: z.string() })),
     evidence: z.array(z.object({ seconds: z.number(), description: z.string() })),
     uncertainties: z.array(z.string()), confidence: z.number().min(0).max(1)
@@ -177,8 +200,10 @@ export type AgentOptions = {
   maxTurns?: number; frameBudget?: number;
 };
 
+export type AgentResult = { observations: Observation[]; absences: Absence[] };
+
 /** Runs the inspection loop: the model asks for frames, the caller supplies them, until findings are submitted. */
-export async function runAgent({ method, duration, overview, getFrames, call, onEvent, maxTurns = 16, frameBudget = 48 }: AgentOptions): Promise<Observation[]> {
+export async function runAgent({ method, duration, overview, getFrames, call, onEvent, maxTurns = 16, frameBudget = 48 }: AgentOptions): Promise<AgentResult> {
   let budget = frameBudget;
   const messages: MessageParam[] = [{
     role: 'user',
@@ -218,10 +243,15 @@ export async function runAgent({ method, duration, overview, getFrames, call, on
         if (!findings) onEvent?.({ kind: 'retry', message: 'Findings were incomplete; asking the agent to resubmit.' });
       } else results.push({ type: 'tool_result', tool_use_id: use.id, is_error: true, content: `Unknown tool ${use.name}.` });
     }
-    if (findings) { onEvent?.({ kind: 'done', steps: findings.steps.length }); return toObservations(method, findings, duration); }
+    if (findings) { onEvent?.({ kind: 'done', steps: findings.steps.length }); return { observations: toObservations(method, findings, duration), absences: toAbsences(method, findings) }; }
     messages.push({ role: 'user', content: results });
   }
   throw new Error('The agent did not submit findings within its turn limit.');
+}
+
+function toAbsences(method: MethodContract, findings: Findings): Absence[] {
+  return findings.steps.flatMap(s => !s.found && s.absence !== 'n/a' && method.requirements.some(r => r.id === s.step_id)
+    ? [{ stepId: s.step_id, reason: s.absence, confidence: s.confidence, note: s.summary }] : []);
 }
 
 function toObservations(method: MethodContract, findings: Findings, duration: number): Observation[] {

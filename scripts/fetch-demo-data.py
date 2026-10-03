@@ -8,6 +8,9 @@ new examples never re-encodes (and re-hashes) the existing ones.
 The original two clips (DJI_10, DJI_16) use a plain 640px-wide scale. Every later clip (listed in
 NATIVE_CROP_CLIPS) keeps its native aspect ratio, never pads/letterboxes, and crops burned-in black
 bars when ffmpeg cropdetect finds them.
+
+--heldout fetches data/fixtures/heldout.json instead: held-out clips for scoring the agent. They go to
+data/heldout/ (gitignored) with receipts in heldout-assets.json, and get no poster frames.
 """
 import concurrent.futures
 import hashlib
@@ -16,12 +19,15 @@ from pathlib import Path
 import re
 import shutil
 import subprocess
+import sys
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-manifest = json.loads((ROOT / 'data/fixtures/source.json').read_text())
+HELDOUT = '--heldout' in sys.argv
+manifest = json.loads((ROOT / ('data/fixtures/heldout.json' if HELDOUT else 'data/fixtures/source.json')).read_text())
 revision = manifest['revision']
-ASSETS = ROOT / 'data/fixtures/assets.json'
+ASSETS = ROOT / ('data/fixtures/heldout-assets.json' if HELDOUT else 'data/fixtures/assets.json')
+OUT = ROOT / ('data/heldout' if HELDOUT else 'public/demo')
 previous = {r['clip']: r for r in json.loads(ASSETS.read_text())} if ASSETS.exists() else {}
 
 LEGACY_CLIPS = {'DJI_10', 'DJI_16'}
@@ -56,7 +62,7 @@ def detect_crop(raw, duration):
 def fetch(example):
     clip = example['clip_id']
     raw = ROOT / 'data/downloads' / (clip + '.mp4')
-    cached = ROOT / 'public/demo' / (clip + '.mp4')
+    cached = OUT / (clip + '.mp4')
     raw.parent.mkdir(parents=True, exist_ok=True)
     cached.parent.mkdir(parents=True, exist_ok=True)
     prior = previous.get(clip)
@@ -81,7 +87,7 @@ def fetch(example):
                     '-map', '0:v:0', '-vf', vf, '-r', '15', '-c:v', 'libx264', '-crf', '26', '-preset', 'fast',
                     '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-an', str(cached)], check=True)
     protocol = json.loads(example['protocol_json'])
-    times = [s['t_start'] for s in protocol['steps'] if s['t_start'] is not None]
+    times = [] if HELDOUT else [s['t_start'] for s in protocol['steps'] if s['t_start'] is not None]
     for index, seconds in enumerate(times):
         subprocess.run(['ffmpeg', '-y', '-hide_banner', '-loglevel', 'error', '-ss', str(seconds + 1),
                         '-i', str(cached), '-frames:v', '1', '-q:v', '2',
