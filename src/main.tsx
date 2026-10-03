@@ -1,0 +1,12 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { Toasty } from '@cloudflare/kumo';
+import '@cloudflare/kumo/styles/standalone';
+import './styles.css';
+import App from './App';
+import { SharedRecord } from './components/SharedRecord';
+import { MotionConfig } from 'motion/react';
+import { toasts } from './lib/toast';
+const shared = /^\/r\/([0-9a-f]{16})\/?$/.exec(location.pathname)?.[1];
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><MotionConfig reducedMotion="user"><Toasty toastManager={toasts}>{shared ? <SharedRecord id={shared}/> : <App/>}</Toasty></MotionConfig></React.StrictMode>);
+if (import.meta.env.PROD && 'serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => { /* Local server also serves all cached assets without network access. */ });

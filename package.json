@@ -1,0 +1,46 @@
+{
+  "name": "lens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 5174",
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "fetch-data": "python3 scripts/fetch-demo-data.py",
+    "worker:dev": "wrangler dev --port 8787",
+    "deploy": "npm run build && wrangler deploy",
+    "verify-record": "tsx scripts/verify-record.ts",
+    "dev:all": "wrangler dev --port 8787 & vite --host 127.0.0.1 --port 5174",
+    "eval:agent": "tsx scripts/eval-agent.ts",
+    "sample-protocols": "python3 scripts/make-sample-protocols.py"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@cloudflare/kumo": "^2.14.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "@types/qrcode": "^1.5.6",
+    "motion": "^14.0.0",
+    "qrcode": "^1.5.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "eslint": "^9.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.0.0",
+    "vite": "^6.3.0",
+    "vitest": "^3.2.0",
+    "wrangler": "^4.0.0"
+  }
+}

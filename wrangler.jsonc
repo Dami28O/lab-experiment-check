@@ -1,0 +1,11 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "lens",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-03",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": { "directory": "./dist", "binding": "ASSETS", "not_found_handling": "single-page-application", "run_worker_first": ["/api/*"] },
+  // Published experiment records (shareable /r/<id> links). Provisioned automatically on first deploy.
+  "kv_namespaces": [{ "binding": "RECORDS" }],
+  "observability": { "enabled": true }
+}
