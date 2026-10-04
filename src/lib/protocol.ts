@@ -5,7 +5,7 @@ const requirementSchema = z.object({
   id: z.string().min(1), title: z.string().min(1), description: z.string(), order: z.number().int().positive(),
   action: z.string().optional(), source: z.string().optional(), target: z.string().optional(),
   duration: z.object({ expectedSeconds: z.number().nonnegative().optional(), minSeconds: z.number().nonnegative().optional(), maxSeconds: z.number().nonnegative().optional() }).optional(),
-  after: z.array(z.string()).optional(), before: z.array(z.string()).optional(), requiredEvidence: z.array(z.string()).optional(), checks: z.array(z.string()).optional(), caveats: z.array(z.string()).optional(),
+  after: z.array(z.string()).optional(), before: z.array(z.string()).optional(), requiredEvidence: z.array(z.string()).optional(), checks: z.array(z.string()).optional(), definingAction: z.string().optional(), visualGroup: z.string().optional(), caveats: z.array(z.string()).optional(),
   criticality: z.enum(['informational', 'important', 'critical']), category: z.enum(['identity', 'timing', 'action', 'ordering'])
 });
 export const methodSchema = z.object({ schemaVersion: z.literal(1), title: z.string().min(1), version: z.string().min(1), source: z.string(), summary: z.string().optional(), requirements: z.array(requirementSchema).min(1).max(100) });

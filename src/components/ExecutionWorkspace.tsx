@@ -65,7 +65,7 @@ export function ExecutionWorkspace({ run, method, results, selected, currentTime
           </div>
           {o?.checkResults && <ul className="check-list">{o.checkResults.map(c => <li key={c.check}><CheckIconFor result={c.result}/><div><strong>{c.check}</strong><span>{c.note}</span></div></li>)}</ul>}
           {!o?.checkResults && result.status === 'unverifiable' && <p className="muted small">Cannot establish: {result.missingEvidence.map(readable).join(', ')}.</p>}
-          {result.status === 'skipped' && <p className="deviation">Skipped: the neighbouring steps leave no room for it between {time(result.between[0])} and {time(result.between[1])}, and the agent saw it not done there. {result.reason}</p>}
+          {result.status === 'skipped' && <p className="deviation">Skipped: the agent watched where it belongs, between {time(result.between[0])} and {time(result.between[1])}, and saw it not done. {result.reason}</p>}
           {result.status === 'contradicted' && !o?.checkResults?.some(c => c.result === 'contradicted') && <p className="deviation">Expected {describe(result.expected)}; observed {describe(result.observed)}.</p>}
           {o && o.evidence.some(e => e.kind === 'video') && <div className="evidence-times"><span className="label">Evidence</span>{o.evidence.filter(e => e.kind === 'video').map(e => <button key={e.id} onClick={() => seek(e.timestamp)}><span className="mono">{time(e.timestamp)}</span>{e.description}</button>)}</div>}
           {r.caveats?.length ? <p className="caveats"><span className="label">Not establishable from video</span>{r.caveats.join(' · ')}</p> : null}

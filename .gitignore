@@ -9,3 +9,4 @@ artifacts/
 *.tsbuildinfo
 .DS_Store
 data/heldout/
+data/fresh/

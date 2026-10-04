@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GAP_SECONDS, LONG_WAIT_SECONDS, verifyRun, waitSeconds } from '../src/lib/conformance';
+import { LONG_WAIT_SECONDS, verifyRun, waitSeconds } from '../src/lib/conformance';
 import type { Absence, MethodContract, Observation } from '../src/lib/types';
 
 const method: MethodContract = { schemaVersion: 1, title: 'Mock', version: '1', source: 'mock', requirements: [1, 2, 3, 4, 5].map(n => ({
@@ -16,14 +16,14 @@ const statuses = (r: ReturnType<typeof run>) => method.requirements.map(x => r[x
 describe('Sequence rules', () => {
   it('flags nothing on a correct, in-order run', () =>
     expect(statuses(run([placed(1, 0, 10), placed(2, 10, 20), placed(3, 20, 30), placed(4, 30, 40), placed(5, 40, 60)]))).toEqual(Array(5).fill('verified')));
-  it('reports a step skipped when the agent saw it not done and its neighbours leave no room', () => {
+  it('reports a step skipped when the agent saw it not done', () => {
     const r = run([placed(1, 0, 10), placed(2, 10, 20), placed(4, 21, 30), placed(5, 30, 60)], [absent(3)]);
     expect(r.s3).toMatchObject({ status: 'skipped', between: [20, 21], reason: 'Step 3 not done' });
   });
-  it('treats overlapping neighbours as no room', () =>
+  it('allows a skip between overlapping neighbours', () =>
     expect(run([placed(2, 10, 22), placed(4, 20, 30)], [absent(3)]).s3.status).toBe('skipped'));
-  it('keeps a step unverifiable when there is footage it could be in', () =>
-    expect(run([placed(2, 10, 20), placed(4, 20 + GAP_SECONDS + .5, 30)], [absent(3)]).s3.status).toBe('unverifiable'));
+  it('no longer needs the neighbours to be adjacent: the agent watched the gap', () =>
+    expect(run([placed(2, 10, 20), placed(4, 31, 40)], [absent(3)]).s3).toMatchObject({ status: 'skipped', between: [20, 31] }));
   it('needs the agent to have seen the step not done', () =>
     expect(run([placed(2, 10, 20), placed(4, 20, 30)], [absent(3, 'not_visible')]).s3.status).toBe('unverifiable'));
   it('uses the structure, not the agent\'s confidence number, for skips', () => {
@@ -50,9 +50,15 @@ describe('Sequence rules', () => {
     expect(run([placed(1, 0, 10), placed(2, 40, 45, .6), placed(3, 10, 20), placed(4, 20, 30)]).s2.status).toBe('verified');
   });
   it('measures the first step from the start of the recording and the last to its end', () => {
-    expect(run([placed(2, 1, 10)], [absent(1)]).s1.status).toBe('skipped');
-    expect(run([placed(2, 5, 10)], [absent(1)]).s1.status).toBe('unverifiable');
-    expect(run([placed(4, 30, 59)], [absent(5)], 60).s5.status).toBe('skipped');
+    expect(run([placed(2, 5, 10)], [absent(1)]).s1).toMatchObject({ status: 'skipped', between: [0, 5] });
+    expect(run([placed(4, 30, 50)], [absent(5)], 60).s5).toMatchObject({ status: 'skipped', between: [50, 60] });
+  });
+  it('reports a skip among look-alike steps as one of the group', () => {
+    const grouped: MethodContract = { ...method, requirements: method.requirements.map(r => ['s1', 's2', 's3'].includes(r.id) ? { ...r, visualGroup: 'reagent addition' } : r) };
+    const r = verifyRun(grouped, { observations: [placed(1, 0, 10), placed(2, 10, 20), placed(4, 20, 30)], absences: [absent(3)], duration: 60 });
+    expect(r.s3).toMatchObject({ status: 'skipped' });
+    expect((r.s3 as { reason: string }).reason).toMatch(/^One of Step 1 \/ Step 2 \/ Step 3 was not performed/);
+    expect((run([placed(2, 10, 20), placed(4, 20, 30)], [absent(3)]).s3 as { reason: string }).reason).toBe('Step 3 not done');
   });
   it('never reports a skip from missing footage alone', () =>
     expect(statuses(run([placed(1, 0, 10)]))).toEqual(['verified', 'unverifiable', 'unverifiable', 'unverifiable', 'unverifiable']));
@@ -63,8 +69,8 @@ describe('Sequence rules', () => {
   });
   it('tolerates small ordering jitter', () =>
     expect(statuses(run([placed(1, 0, 10), placed(2, 11, 20), placed(3, 10, 20), placed(4, 20, 30), placed(5, 30, 60)]))).toEqual(Array(5).fill('verified')));
-  it('still uses a slightly jittered step as a neighbour for the skip rule', () =>
-    expect(run([placed(1, 10, 12), placed(2, 9, 21), placed(4, 21, 30)], [absent(3)]).s3.status).toBe('skipped'));
+  it('still uses a slightly jittered step as a neighbour when placing the gap', () =>
+    expect(run([placed(1, 10, 12), placed(2, 9, 21), placed(4, 21, 30)], [absent(3)]).s3).toMatchObject({ status: 'skipped', between: [21, 21] }));
   it('keeps a contradiction seen on camera rather than replacing it with an ordering one', () => {
     const wrong = { ...placed(2, 40, 45), checkResults: [{ check: 'Step 2 visible', result: 'contradicted' as const, note: 'wrong tube' }] };
     expect(run([placed(1, 0, 10), wrong, placed(3, 10, 20)]).s2).toMatchObject({ status: 'contradicted', observed: 'wrong tube' });

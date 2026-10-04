@@ -1,7 +1,7 @@
 import { Button } from '@cloudflare/kumo';
 import { ArrowLeftIcon, ArrowRightIcon } from '@phosphor-icons/react';
 import { MODEL } from '../lib/agent';
-import { GAP_SECONDS, LONG_WAIT_SECONDS, MIN_CONFIDENCE, ORDER_TOLERANCE_SECONDS } from '../lib/conformance';
+import { LONG_WAIT_SECONDS, MIN_CONFIDENCE, ORDER_TOLERANCE_SECONDS } from '../lib/conformance';
 import { StatusIcon } from './Status';
 
 const steps = [
@@ -67,7 +67,7 @@ export function HowItWorks({ onExample }: { onExample: () => void }) {
       <div className="how-rules">
         <div><StatusIcon status="verified" size={14}/><strong>Verified</strong><p>Every check confirmed (the frames clearly show it) and at least one timestamp of evidence. Checks only cover what a camera can clearly see; volumes, labels, counts and exact durations are listed as caveats instead.</p></div>
         <div><StatusIcon status="contradicted" size={14}/><strong>Contradicted</strong><p>Confidence at least {MIN_CONFIDENCE} and the agent saw a check being broken (wrong tube, wrong vessel), or the step started out of order: outside the longest run of steps placed in protocol order by more than {ORDER_TOLERANCE_SECONDS} s.</p></div>
-        <div><StatusIcon status="skipped" size={14}/><strong>Skipped</strong><p>All at once: the agent watched the stretch where the step belongs and saw it not done, the steps it located either side leave at most {GAP_SECONDS} s of footage for it, and the step is not a wait longer than {LONG_WAIT_SECONDS} s (long waits are routinely cut from recordings). Inferred from absence, so weaker than a contradiction.</p></div>
+        <div><StatusIcon status="skipped" size={14}/><strong>Skipped</strong><p>The agent watched the stretch where the step belongs and saw it not done, and the step is not a wait longer than {LONG_WAIT_SECONDS} s (long waits are routinely cut from recordings). Steps that look the same on camera, like three unlabelled reagent additions, are reported as “one of” the group. Inferred from absence, so weaker than a contradiction.</p></div>
         <div><StatusIcon status="unverifiable" size={14}/><strong>Unverifiable</strong><p>Everything else. Low confidence, out of shot, or a condition video cannot show. Missing footage alone is never reported as skipped.</p></div>
       </div>
     </section>

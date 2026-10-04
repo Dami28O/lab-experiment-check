@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { runAgent, unverifiableReason, toContract, type AgentCall } from '../src/lib/agent';
 import { verifyMethod } from '../src/lib/conformance';
 const method = toContract({ title: 'Mock', summary: '', steps: [
-  { title: 'Add reagent', description: 'Add reagent 1 to the tube.', checks: ['Tip enters the tube'], caveats: ['Sterility'], criticality: 'critical', category: 'action' },
-  { title: 'Incubate', description: 'Incubate 20 min.', checks: ['Tube left for 20 minutes'], caveats: [], criticality: 'important', category: 'timing' }
+  { title: 'Add reagent', description: 'Add reagent 1 to the tube.', defining_action: '', visual_group: '', checks: ['Tip enters the tube'], caveats: ['Sterility'], criticality: 'critical', category: 'action' },
+  { title: 'Incubate', description: 'Incubate 20 min.', defining_action: '', visual_group: '', checks: ['Tube left for 20 minutes'], caveats: [], criticality: 'important', category: 'timing' }
 ] }, 'mock.pdf');
 const findings = (steps: string[]) => ({ steps: steps.map(id => ({ step_id: id, found: id === 'step-01', absence: id === 'step-01' ? 'n/a' : 'not_performed', start_seconds: id === 'step-01' ? 2 : 0, end_seconds: id === 'step-01' ? 6 : 0, summary: 'Tip enters the tube.', check_results: [{ check_index: 0, result: 'confirmed', note: 'Visible at 4 s' }], evidence: [{ seconds: 4, description: 'Tip in tube' }], uncertainties: [], confidence: .9 })) });
 function scripted(turns: unknown[][]): { call: AgentCall; requests: unknown[][] } {
@@ -54,18 +54,26 @@ describe('Checks video cannot clearly establish', () => {
       ['Pipette draws from the container labeled reagent 1', 'Label or contents'], ['The tube label is legible', 'Label or contents'],
       ['About 4-5 distinct flicks are visible', 'Exact count'], ['The suspension is pipetted 10 times', 'Exact count'],
       ['The tube stays on ice for about 5 seconds', 'Exact duration or temperature'], ['Tube left undisturbed for about 20 minutes', 'Exact duration or temperature'],
-      ['The display shows 42°C', 'Exact duration or temperature'], ['The tube is in the water bath for exactly the stated time', 'Exact duration or temperature']
+      ['The display shows 42°C', 'Exact duration or temperature'], ['Each bottle or item is sprayed before it enters the cabinet', 'Claim about every item'],
+      ['All reagents are wiped down', 'Claim about every item'], ['The tube is in the water bath for exactly the stated time', 'Exact duration or temperature']
     ]) expect(unverifiableReason(c), c).toBe(reason);
   });
   it('keeps actions, vessels recognised by appearance, order and qualitative timing', () => {
     for (const c of ['A fresh 1.5 mL EP tube is opened', 'Reagent 1 is dispensed into the 1.5 mL EP tube', 'The receiving vessel is the 10 cm dish',
       'Tube size used (15 ml or 50 ml) is noted', 'The tube is put into the ice and left there', 'The tube is flicked with a finger',
-      'This happens after the heat shock', 'The plate is turned upside down', 'The tube is moved to the thermal cycler'])
+      'This happens after the heat shock', 'The plate is turned upside down', 'The tube is moved to the thermal cycler',
+      'Items are cleaned, by spraying or wiping, before entering the hood'])
       expect(unverifiableReason(c), c).toBeUndefined();
   });
   it('rewrites the contract so only clearly visible checks reach the agent', () => {
-    const m = toContract({ title: 'T', summary: '', steps: [{ title: 'Add', description: 'Add 5 µL.', checks: ['Tip enters the tube', 'Pipette volume reads 5 µL'], caveats: [], criticality: 'critical', category: 'action' }] }, 'x');
+    const m = toContract({ title: 'T', summary: '', steps: [{ title: 'Add', description: 'Add 5 µL.', defining_action: '', visual_group: '', checks: ['Tip enters the tube', 'Pipette volume reads 5 µL'], caveats: [], criticality: 'critical', category: 'action' }] }, 'x');
     expect(m.requirements[0].checks).toEqual(['Tip enters the tube']);
     expect(m.requirements[0].caveats).toEqual(['Measured quantity, not verifiable from video: Pipette volume reads 5 µL']);
+  });
+  it('carries the defining action and look-alike group into the contract, dropping empty ones', () => {
+    const step = (title: string, group: string) => ({ title, description: title, defining_action: `${title} action`, visual_group: group, checks: ['Tip enters the tube'], caveats: [], criticality: 'critical' as const, category: 'action' as const });
+    const m = toContract({ title: 'T', summary: '', steps: [step('Add reagent 1', 'reagent addition'), step('Add reagent 2', 'reagent addition'), step('Mix', ' ')] }, 'x');
+    expect(m.requirements.map(r => r.visualGroup)).toEqual(['reagent addition', 'reagent addition', undefined]);
+    expect(m.requirements[2].definingAction).toBe('Mix action');
   });
 });

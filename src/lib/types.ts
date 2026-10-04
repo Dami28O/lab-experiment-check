@@ -7,6 +7,10 @@ export type ProtocolRequirement = {
   after?: string[]; before?: string[]; requiredEvidence?: string[];
   /** Visually checkable conditions extracted from the methodology. */
   checks?: string[];
+  /** The one visible action that tells this step apart from its neighbours. */
+  definingAction?: string;
+  /** Shared by steps that look the same on camera (e.g. three reagent additions); they can only be told apart by order and count. */
+  visualGroup?: string;
   /** Conditions the methodology states that a recording cannot establish (sterility, temperature…). */
   caveats?: string[];
   criticality: 'informational' | 'important' | 'critical'; category: EvidenceCategory;

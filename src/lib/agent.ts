@@ -17,6 +17,8 @@ export const extractedMethodSchema = z.object({
   steps: z.array(z.object({
     title: z.string(),
     description: z.string(),
+    defining_action: z.string(),
+    visual_group: z.string(),
     checks: z.array(z.string()),
     caveats: z.array(z.string()),
     criticality: z.enum(['informational', 'important', 'critical']),
@@ -32,12 +34,15 @@ Read the supplied document (a paper, protocol or notes). Find the experimental p
 For each step:
 - title: a short imperative label, at most six words ("Add reagent 2 to tube").
 - description: the instruction as the document states it, keeping quantities, times and materials.
-- checks: only conditions a camera watching the bench could clearly confirm or refute: the action performed, a vessel or apparatus recognisable by its appearance or position, the order relative to other steps, a visible change of state. Two to four checks is typical. If a step is a wait (e.g. "incubate 20 min"), the check is qualitative: the item is put in place and left there rather than moved on straight away.
+- defining_action: the one visible action that tells this step apart from the steps around it, as a camera would see it. Be specific about how look-alike actions differ: an addition draws liquid from a source container and dispenses it into the target; mixing works within one tube (pipetting up and down in it, flicking, inverting) without drawing from another container; cleaning is spraying or wiping, whichever is used.
+- visual_group: if this step would look the same on camera as other steps (e.g. "add reagent 1", "add reagent 2", "add reagent 3" from unlabelled containers), give all of them the same short label ("reagent addition"); otherwise an empty string.
+- checks: only conditions a camera watching the bench could clearly confirm or refute: the action performed, a vessel or apparatus recognisable by its appearance or position, the order relative to other steps, a visible change of state. Two to four checks is typical. Write them at the level of purpose and accept equivalent visible means ("items are cleaned, by spraying or wiping, before entering the hood"; "the tube is heated in a water bath, heat block or thermal cycler"). Never claim something about every item ("each bottle is sprayed"): sampled frames cannot show that. If a step is a wait (e.g. "incubate 20 min"), the check is qualitative: the item is put in place and left there rather than moved on straight away.
 - caveats: everything the document requires that video cannot clearly establish. Always put these here, never in checks:
   - volumes, amounts, concentrations or any measured quantity (pipette settings, graduations, liquid levels);
   - identity that depends on reading a label or knowing contents (which reagent, which cell line);
   - exact counts ("4-5 flicks", "pipette 10 times");
   - exact durations and temperatures ("for 5 seconds", "20 min", "42°C");
+  - claims about every item (each, every, all of them);
   - sterility and anything else not visible.
 - criticality: critical if an error would invalidate the experiment, important if it would likely change the result, informational otherwise.
 - category: identity (right material or vessel), timing (durations), ordering (sequence), or action (the physical manipulation).
@@ -50,6 +55,7 @@ const UNVERIFIABLE: [reason: string, pattern: RegExp][] = [
   ['Measured quantity', /\b(volume|amount|concentration|quantity|graduation|liquid level)s?\b|\b(about|approximately|roughly|~)\s*\d+(\.\d+)?\s*(µl|μl|ul|ml|l|mg|µg|μg|ng|g|mm|µm|μm|nm|m)\b|\d+(\.\d+)?\s*(µl|μl|ul|ml|mg|µg|μg|ng|g)\s+of\b/i],
   ['Label or contents', /\blabel(l?ed|s)?\b|\blegible\b/i],
   ['Exact count', /\b\d+(\s*(-|–|to)\s*\d+)?\s+(\w+\s+){0,2}(times|flicks|strokes|inversions|taps)\b|\bnumber of\b|\bcount(ed)?\b/i],
+  ['Claim about every item', /\b(each|every|all)\s+(of\s+the\s+)?(bottles?|items?|materials?|reagents?|tubes?|containers?|surfaces?|wells?|dishes?|plates?)\b/i],
   ['Exact duration or temperature', /\b\d+(\.\d+)?\s*(-|–|to)?\s*\d*\s*(s|secs?|seconds?|mins?|minutes?|h|hrs?|hours?)\b|\d+(\.\d+)?\s*°\s*[cf]\b|\bexactly\b/i],
 ];
 export function unverifiableReason(check: string): string | undefined { return UNVERIFIABLE.find(([, p]) => p.test(check))?.[0]; }
@@ -62,6 +68,7 @@ export function toContract(extracted: ExtractedMethod, source: string): MethodCo
       const moved = s.checks.flatMap(c => { const reason = unverifiableReason(c); return reason ? [`${reason}, not verifiable from video: ${c}`] : []; });
       return {
         id: `step-${String(i + 1).padStart(2, '0')}`, order: i + 1, title: s.title, description: s.description,
+        definingAction: s.defining_action || undefined, visualGroup: s.visual_group.trim() || undefined,
         checks: checks.length ? checks : [`${s.title} is visibly performed`], caveats: [...s.caveats, ...moved],
         criticality: s.criticality, category: s.category
       };
@@ -87,6 +94,9 @@ For each methodology step:
 1. Locate it: the time window where it is performed, or found=false if you cannot locate it.
    A step is performed only when its defining action is seen: for "incubate on ice", the tube put into the ice and left there. Being near the apparatus is not doing the step: a tube held over an ice bucket while it is flicked, or carried past it to the next instrument, does not count.
    Steps often run together in one motion. Place each step only by its own defining action. If that action never happens between the neighbouring steps, the step is not found, even if the neighbours sit right next to each other.
+   Steps can also interleave (gathering reagents while cleaning them); their windows may overlap.
+   Steps marked as looking the same on camera can only be told apart by order and count: count how many times their shared defining action actually happens, assign the occurrences to the steps in order, and if there are fewer occurrences than steps, report the unmatched step(s) as not found. Do not count a different action (such as mixing in place) as one of them.
+   To judge a motion (rocking, tapping, flicking, swirling, pipetting up and down, inverting), request 6 to 8 frames over 2 to 4 seconds; single frames cannot show movement.
    If found=false, set absence: "not_performed" only if the recording continuously shows the stretch where this step belongs (between the neighbouring steps you located) and the step is clearly not done there; otherwise "not_visible" (it could have happened out of shot, between sampled frames, or in a part of the procedure the recording does not cover: recordings can be excerpts). Your confidence then rates this judgement. If found=true, set absence to "n/a".
 2. Judge every check against what is visible:
    - confirmed: the frames clearly show it.
@@ -180,6 +190,8 @@ function methodBrief(method: MethodContract): string {
   return method.requirements.map(r => [
     `${r.id} — ${r.title}`,
     `  Method: ${r.description}`,
+    r.definingAction ? `  Defining action: ${r.definingAction}` : '',
+    r.visualGroup ? `  Looks the same on camera as: ${method.requirements.filter(x => x.visualGroup === r.visualGroup && x.id !== r.id).map(x => x.id).join(', ')} (tell them apart only by order and count)` : '',
     '  Checks:', ...(r.checks ?? []).map((c, i) => `    [${i}] ${c}`),
     r.caveats?.length ? `  Not establishable from video: ${r.caveats.join('; ')}` : ''
   ].filter(Boolean).join('\n')).join('\n\n');
@@ -203,7 +215,7 @@ export type AgentOptions = {
 export type AgentResult = { observations: Observation[]; absences: Absence[] };
 
 /** Runs the inspection loop: the model asks for frames, the caller supplies them, until findings are submitted. */
-export async function runAgent({ method, duration, overview, getFrames, call, onEvent, maxTurns = 16, frameBudget = 48 }: AgentOptions): Promise<AgentResult> {
+export async function runAgent({ method, duration, overview, getFrames, call, onEvent, maxTurns = 20, frameBudget = Math.max(48, 4 * method.requirements.length) }: AgentOptions): Promise<AgentResult> {
   let budget = frameBudget;
   const messages: MessageParam[] = [{
     role: 'user',

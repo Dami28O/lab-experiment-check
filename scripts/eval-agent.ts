@@ -6,39 +6,47 @@
  *   npm run eval:agent                          # dev clips (the app's samples)
  *   npm run eval:agent -- DJI_17                # selected dev clips
  *   npm run eval:agent -- --split heldout       # held-out clips: run once, after the design lock
+ *   npm run eval:agent -- --split fresh         # the next untouched set (data/fixtures/extra.json)
  *   npm run eval:agent -- --rescore             # re-judge saved runs with the current rules: no API calls
  *
- * Dev runs are cached in data/fixtures/agent-runs.json (the app opens them instantly); held-out runs in
- * heldout-runs.json. Scores go to agent-eval.json. Held-out videos come from `python3 scripts/fetch-demo-data.py --heldout`.
+ * Clips come from every manifest (source.json, heldout.json, extra.json) and are chosen by their split in labels.json.
+ * Dev runs are cached in data/fixtures/agent-runs.json (the app opens them instantly); other splits in <split>-runs.json.
+ * Scores go to agent-eval.json. Videos: `python3 scripts/fetch-demo-data.py --heldout` / `--extra`.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import Anthropic from '@anthropic-ai/sdk';
 import { clock, runAgent, type Frame } from '../src/lib/agent';
 import { agentTurn, extractMethod } from '../src/lib/claude';
-import { GAP_SECONDS, MIN_CONFIDENCE, ORDER_TOLERANCE_SECONDS, verifyRun } from '../src/lib/conformance';
+import { LONG_WAIT_SECONDS, MIN_CONFIDENCE, ORDER_TOLERANCE_SECONDS, verifyRun } from '../src/lib/conformance';
 import { samples, toSample, type Sample } from '../src/lib/demo';
 import type { Absence, MethodContract, Observation } from '../src/lib/types';
 import heldoutManifest from '../data/fixtures/heldout.json';
+import extraManifest from '../data/fixtures/extra.json';
 import labelFile from '../data/fixtures/labels.json';
 
 if (!process.env.ANTHROPIC_API_KEY && existsSync('.dev.vars')) {
   const match = readFileSync('.dev.vars', 'utf8').match(/^ANTHROPIC_API_KEY\s*=\s*"?([^"\n]+)"?/m);
   if (match) process.env.ANTHROPIC_API_KEY = match[1];
 }
-type Label = { split: 'dev' | 'heldout'; trueSkips: number[]; errorSteps: number[]; eitherSteps: number[]; note: string };
+type Label = { split: 'dev' | 'heldout' | 'fresh'; trueSkips: number[]; errorSteps: number[]; eitherSteps: number[]; unscoredSteps?: number[]; note: string };
 type CachedRun = { method: MethodContract; observations: Observation[]; absences?: Absence[]; log: string[]; generatedAt: string; usage?: Usage };
 type Usage = { input: number; cacheWrite: number; cacheRead: number; output: number };
 const labels = labelFile.clips as Record<string, Label>;
 
 const args = process.argv.slice(2);
 const split = args.includes('--split') ? args[args.indexOf('--split') + 1] : 'dev';
-if (split !== 'dev' && split !== 'heldout') throw new Error('--split must be dev or heldout');
+if (!['dev', 'heldout', 'fresh'].includes(split)) throw new Error('--split must be dev, heldout or fresh');
 const rescore = args.includes('--rescore');
 const selected = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--split');
 
-const pool: Sample[] = split === 'dev' ? samples : heldoutManifest.examples.map(e => toSample(e as never, heldoutManifest.revision, existsSync('data/fixtures/heldout-assets.json') ? JSON.parse(readFileSync('data/fixtures/heldout-assets.json', 'utf8')) : []));
-const runsPath = split === 'dev' ? 'data/fixtures/agent-runs.json' : 'data/fixtures/heldout-runs.json', evalPath = 'data/fixtures/agent-eval.json';
+const assetsOf = (name: string) => existsSync(`data/fixtures/${name}-assets.json`) ? JSON.parse(readFileSync(`data/fixtures/${name}-assets.json`, 'utf8')) : [];
+const pool: Sample[] = [
+  ...samples,
+  ...heldoutManifest.examples.map(e => toSample(e as never, heldoutManifest.revision, assetsOf('heldout'))),
+  ...extraManifest.examples.map(e => toSample(e as never, extraManifest.revision, assetsOf('extra')))
+].filter(s => labels[s.id]?.split === split);
+const runsPath = split === 'dev' ? 'data/fixtures/agent-runs.json' : `data/fixtures/${split}-runs.json`, evalPath = 'data/fixtures/agent-eval.json';
 const cached = (existsSync(runsPath) ? JSON.parse(readFileSync(runsPath, 'utf8')) : {}) as Record<string, CachedRun>;
 const report = (existsSync(evalPath) ? JSON.parse(readFileSync(evalPath, 'utf8')) : { clips: {} }) as { clips: Record<string, Clip> };
 const client = rescore ? undefined : new Anthropic();
@@ -54,7 +62,7 @@ const dollars = (u: Usage) => (u.input * 4 + u.cacheWrite * 5 + u.cacheRead * 0.
 
 async function analyse(sample: Sample): Promise<CachedRun> {
   const file = videoFile(sample);
-  if (!existsSync(file)) throw new Error(`${file} is missing. Run python3 scripts/fetch-demo-data.py${split === 'heldout' ? ' --heldout' : ''}.`);
+  if (!existsSync(file)) throw new Error(`${file} is missing. Run python3 scripts/fetch-demo-data.py (--heldout or --extra for eval-only clips).`);
   const method = await extractMethod(client!, { kind: 'text', name: sample.protocolName, text: readFileSync(`public${sample.protocolText}`, 'utf8') });
   console.log(`  extracted ${method.requirements.length} steps`);
   const log: string[] = [], usage: Usage = { input: 0, cacheWrite: 0, cacheRead: 0, output: 0 };
@@ -84,8 +92,12 @@ function score(sample: Sample, label: Label, run: CachedRun) {
   const flagged = [...skipped, ...contradicted];
   const expected = new Set([...label.trueSkips, ...label.errorSteps, ...label.eitherSteps]);
   const skipTargets = [...label.trueSkips, ...label.eitherSteps];
-  const skipsCaught = skipTargets.filter(s => (label.trueSkips.includes(s) ? skipped : flagged).includes(s));
-  const falseAlarms = flagged.filter(s => !expected.has(s));
+  // Steps that look the same on camera can only be reported as "one of" their group, so a skip on a group-mate counts.
+  const groupOf = (order: number) => { const g = run.method.requirements.find(r => r.order === order)?.visualGroup; return g ? run.method.requirements.filter(r => r.visualGroup === g).map(r => r.order) : [order]; };
+  const catcher = (s: number) => (label.trueSkips.includes(s) ? skipped.filter(x => groupOf(s).includes(x)) : flagged.filter(x => x === s))[0];
+  const skipsCaught = skipTargets.filter(s => catcher(s) !== undefined);
+  const credited = new Set(skipTargets.map(catcher).filter(x => x !== undefined));
+  const falseAlarms = flagged.filter(s => !expected.has(s) && !credited.has(s) && !(label.unscoredSteps ?? []).includes(s));
   // Localisation: extraction keeps the protocol's numbering, so step N maps to ground-truth step N.
   // Labelled-skipped steps carry placeholder windows in the manifest, so they are not scored.
   const aligned = run.method.requirements.length === sample.groundTruth.steps.length;
@@ -106,7 +118,7 @@ function score(sample: Sample, label: Label, run: CachedRun) {
     counts: Object.fromEntries(['verified', 'contradicted', 'skipped', 'unverifiable'].map(s => [s, Object.values(results).filter(r => r.status === s).length])),
     localisation: aligned ? { steps: perStep.length, meanIoU: perStep.reduce((n, l) => n + l.iou, 0) / (perStep.length || 1), hitsAtIoU03: perStep.filter(l => l.iou >= 0.3).length, perStep } : 'extracted step count differs from the protocol; localisation not scored',
     usage: run.usage, costUSD: run.usage ? Number(dollars(run.usage).toFixed(2)) : null,
-    rules: { MIN_CONFIDENCE, GAP_SECONDS, ORDER_TOLERANCE_SECONDS }
+    rules: { MIN_CONFIDENCE, LONG_WAIT_SECONDS, ORDER_TOLERANCE_SECONDS }
   };
 }
 

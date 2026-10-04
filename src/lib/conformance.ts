@@ -50,8 +50,6 @@ export function verify(requirement: ProtocolRequirement, observations: Observati
 export function verifyMethod(method: MethodContract, observations: Observation[]): Record<string, VerificationResult> {
   return Object.fromEntries(method.requirements.map(r => [r.id, verify(r, observations)]));
 }
-/** Seconds of footage between a missing step's located neighbours that still counts as "no room for it". */
-export const GAP_SECONDS = 2;
 /** A wait longer than this is routinely cut from recordings, so its absence is never called a skip. */
 export const LONG_WAIT_SECONDS = 60;
 /** How far a step's start may precede an earlier step's start (or follow a later one's) before it is out of order. */
@@ -60,9 +58,9 @@ export const ORDER_TOLERANCE_SECONDS = 2;
 /** Per-step verdicts, plus the sequence rules for agent runs, over the steps the agent located:
  * - out of order: a located step outside the longest run of steps located in protocol order, by more than the
  *   tolerance, flagged only at MIN_CONFIDENCE (it is an accusation);
- * - skipped: an unlocated step the agent saw not done, whose in-order neighbours leave at most GAP_SECONDS for it,
- *   and which is not a wait longer than LONG_WAIT_SECONDS.
- * Missing footage alone is still never a skip: every condition must hold.
+ * - skipped: an unlocated step the agent watched for and saw not done, which is not a wait longer than
+ *   LONG_WAIT_SECONDS. In a group of steps that look the same on camera, it is reported as "one of" the group.
+ * Missing footage alone is still never a skip: the agent must have seen the stretch where the step belongs.
  */
 export function verifyRun(method: MethodContract, run: Pick<Run, 'observations' | 'duration' | 'absences'>): Record<string, VerificationResult> {
   const results = verifyMethod(method, run.observations);
@@ -87,8 +85,9 @@ export function verifyRun(method: MethodContract, run: Pick<Run, 'observations' 
     if (i < 0 || absence.reason !== 'not_performed' || waitSeconds(steps[i].description) > LONG_WAIT_SECONDS || run.observations.some(o => o.stepId === absence.stepId)) continue;
     const prev = ordered.slice(0, i).filter(Boolean).at(-1), next = ordered.slice(i + 1).find(Boolean);
     const between: [number, number] = [prev?.timestampEnd ?? 0, next?.timestampStart ?? run.duration];
-    if (between[1] - between[0] > GAP_SECONDS) continue;
-    results[absence.stepId] = { status: 'skipped', confidence: absence.confidence, reason: absence.note, between, evidence: [...prev?.evidence ?? [], ...next?.evidence ?? []] };
+    const group = steps[i].visualGroup ? steps.filter(r => r.visualGroup === steps[i].visualGroup) : [];
+    const reason = group.length > 1 ? `One of ${group.map(r => r.title).join(' / ')} was not performed (they look the same on camera, so which one cannot be told). ${absence.note}` : absence.note;
+    results[absence.stepId] = { status: 'skipped', confidence: absence.confidence, reason, between, evidence: [...prev?.evidence ?? [], ...next?.evidence ?? []] };
   }
   return results;
 }

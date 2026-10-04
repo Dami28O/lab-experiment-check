@@ -9,8 +9,8 @@ The original two clips (DJI_10, DJI_16) use a plain 640px-wide scale. Every late
 NATIVE_CROP_CLIPS) keeps its native aspect ratio, never pads/letterboxes, and crops burned-in black
 bars when ffmpeg cropdetect finds them.
 
---heldout fetches data/fixtures/heldout.json instead: held-out clips for scoring the agent. They go to
-data/heldout/ (gitignored) with receipts in heldout-assets.json, and get no poster frames.
+--heldout (or --extra) fetches data/fixtures/heldout.json (or extra.json) instead: clips for scoring the agent
+only. Each goes to its manifest cached_path (gitignored) with receipts in <name>-assets.json, and gets no poster frames.
 """
 import concurrent.futures
 import hashlib
@@ -23,11 +23,11 @@ import sys
 import urllib.request
 
 ROOT = Path(__file__).resolve().parents[1]
-HELDOUT = '--heldout' in sys.argv
-manifest = json.loads((ROOT / ('data/fixtures/heldout.json' if HELDOUT else 'data/fixtures/source.json')).read_text())
+NAME = 'heldout' if '--heldout' in sys.argv else 'extra' if '--extra' in sys.argv else None
+HELDOUT = NAME is not None
+manifest = json.loads((ROOT / f'data/fixtures/{NAME or "source"}.json').read_text())
 revision = manifest['revision']
-ASSETS = ROOT / ('data/fixtures/heldout-assets.json' if HELDOUT else 'data/fixtures/assets.json')
-OUT = ROOT / ('data/heldout' if HELDOUT else 'public/demo')
+ASSETS = ROOT / (f'data/fixtures/{NAME}-assets.json' if HELDOUT else 'data/fixtures/assets.json')
 previous = {r['clip']: r for r in json.loads(ASSETS.read_text())} if ASSETS.exists() else {}
 
 LEGACY_CLIPS = {'DJI_10', 'DJI_16'}
@@ -62,7 +62,7 @@ def detect_crop(raw, duration):
 def fetch(example):
     clip = example['clip_id']
     raw = ROOT / 'data/downloads' / (clip + '.mp4')
-    cached = OUT / (clip + '.mp4')
+    cached = ROOT / example['cached_path'] if HELDOUT else ROOT / 'public/demo' / (clip + '.mp4')
     raw.parent.mkdir(parents=True, exist_ok=True)
     cached.parent.mkdir(parents=True, exist_ok=True)
     prior = previous.get(clip)
