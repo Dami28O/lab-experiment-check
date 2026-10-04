@@ -111,7 +111,6 @@ For each methodology step:
    A step is performed only when its defining action is seen: for "incubate on ice", the tube put into the ice and left there. Being near the apparatus is not doing the step: a tube held over an ice bucket while it is flicked, or carried past it to the next instrument, does not count.
    Steps often run together in one motion. Place each step only by its own defining action. If that action never happens between the neighbouring steps, the step is not found, even if the neighbours sit right next to each other.
    Steps can also interleave (gathering reagents while cleaning them); their windows may overlap.
-   Steps marked as looking the same on camera can only be told apart by order and count: count how many times their shared defining action actually happens, assign the occurrences to the steps in order, and if there are fewer occurrences than steps, report the unmatched step(s) as not found. Do not count a different action (such as mixing in place) as one of them.
    To judge a motion (rocking, tapping, flicking, swirling, pipetting up and down, inverting), request 6 to 8 frames over 2 to 4 seconds; single frames cannot show movement.
    If found=false, set absence: "not_performed" only if the recording continuously shows the stretch where this step belongs (between the neighbouring steps you located) and the step is clearly not done there; otherwise "not_visible" (it could have happened out of shot, between sampled frames, or in a part of the procedure the recording does not cover: recordings can be excerpts). Your confidence then rates this judgement. If found=true, set absence to "n/a".
 2. Judge every check against what is visible:
@@ -207,7 +206,6 @@ function methodBrief(method: MethodContract): string {
     `${r.id} — ${r.title}`,
     `  Method: ${r.description}`,
     r.definingAction ? `  Defining action: ${r.definingAction}` : '',
-    r.visualGroup ? `  Looks the same on camera as: ${method.requirements.filter(x => x.visualGroup === r.visualGroup && x.id !== r.id).map(x => x.id).join(', ')} (tell them apart only by order and count)` : '',
     '  Checks:', ...(r.checks ?? []).map((c, i) => `    [${i}] ${c}`),
     r.caveats?.length ? `  Not establishable from video: ${r.caveats.join('; ')}` : ''
   ].filter(Boolean).join('\n')).join('\n\n');
