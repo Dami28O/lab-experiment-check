@@ -35,7 +35,7 @@ For each step:
 - title: a short imperative label, at most six words ("Add reagent 2 to tube").
 - description: the instruction as the document states it, keeping quantities, times and materials.
 - defining_action: the one visible action that tells this step apart from the steps around it, as a camera would see it. Be specific about how look-alike actions differ: an addition draws liquid from a source container and dispenses it into the target; mixing works within one tube (pipetting up and down in it, flicking, inverting) without drawing from another container; cleaning is spraying or wiping, whichever is used.
-- visual_group: if this step would look the same on camera as other steps (e.g. "add reagent 1", "add reagent 2", "add reagent 3" from unlabelled containers), give all of them the same short label ("reagent addition"); otherwise an empty string.
+- visual_group: if this step and the steps directly before or after it would look the same on camera (e.g. "add reagent 1", "add reagent 2", "add reagent 3" from unlabelled containers, one after another), give them the same short label ("reagent addition"); otherwise an empty string. Steps separated by a different action are told apart by it and are not grouped.
 - checks: only conditions a camera watching the bench could clearly confirm or refute: the action performed, a vessel or apparatus recognisable by its appearance or position, the order relative to other steps, a visible change of state. Two to four checks is typical. Write them at the level of purpose and accept equivalent visible means ("items are cleaned, by spraying or wiping, before entering the hood"; "the tube is heated in a water bath, heat block or thermal cycler"). Never claim something about every item ("each bottle is sprayed"): sampled frames cannot show that. If a step is a wait (e.g. "incubate 20 min"), the check is qualitative: the item is put in place and left there rather than moved on straight away.
 - caveats: everything the document requires that video cannot clearly establish. Always put these here, never in checks:
   - volumes, amounts, concentrations or any measured quantity (pipette settings, graduations, liquid levels);
@@ -60,7 +60,23 @@ const UNVERIFIABLE: [reason: string, pattern: RegExp][] = [
 ];
 export function unverifiableReason(check: string): string | undefined { return UNVERIFIABLE.find(([, p]) => p.test(check))?.[0]; }
 
+/** Look-alike groups only hold consecutive steps: steps split by a different action (ice, heat shock, ice) are told
+ * apart by that action, and grouping them invites the agent to pad the count. Each consecutive run keeps a group of
+ * its own; a run of one is no group. */
+export function adjacentGroups(groups: string[]): (string | undefined)[] {
+  const label = groups.map(g => g.trim());
+  const runs = label.map((g, i) => g && (label[i - 1] === g || label[i + 1] === g) ? g : '');
+  const seen = new Map<string, number>();
+  return runs.map((g, i) => {
+    if (!g) return undefined;
+    if (runs[i - 1] !== g) seen.set(g, (seen.get(g) ?? 0) + 1);
+    const n = seen.get(g)!;
+    return n > 1 ? `${g} (${n})` : g;
+  });
+}
+
 export function toContract(extracted: ExtractedMethod, source: string): MethodContract {
+  const groups = adjacentGroups(extracted.steps.map(s => s.visual_group));
   return {
     schemaVersion: 1, title: extracted.title, version: '1.0', source, summary: extracted.summary,
     requirements: extracted.steps.map((s, i) => {
@@ -68,7 +84,7 @@ export function toContract(extracted: ExtractedMethod, source: string): MethodCo
       const moved = s.checks.flatMap(c => { const reason = unverifiableReason(c); return reason ? [`${reason}, not verifiable from video: ${c}`] : []; });
       return {
         id: `step-${String(i + 1).padStart(2, '0')}`, order: i + 1, title: s.title, description: s.description,
-        definingAction: s.defining_action || undefined, visualGroup: s.visual_group.trim() || undefined,
+        definingAction: s.defining_action || undefined, visualGroup: groups[i],
         checks: checks.length ? checks : [`${s.title} is visibly performed`], caveats: [...s.caveats, ...moved],
         criticality: s.criticality, category: s.category
       };

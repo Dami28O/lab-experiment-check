@@ -1,0 +1,1777 @@
+{
+  "clips": {
+    "DJI_17": {
+      "title": "E. coli Transformation",
+      "duration": 139.072267,
+      "split": "dev",
+      "note": "Skipped step 3 (ice incubation).",
+      "labelledError": "Skipped step 3 in Mock_Transfornation.txt",
+      "trueSkips": [
+        3
+      ],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": false,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 4,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 3
+      },
+      "localisation": {
+        "steps": 6,
+        "meanIoU": 0.5575816775816776,
+        "hitsAtIoU03": 4,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              33
+            ],
+            "predicted": [
+              9,
+              33
+            ],
+            "iou": 0.7272727272727273,
+            "startError": 9
+          },
+          {
+            "step": 2,
+            "truth": [
+              38,
+              45
+            ],
+            "predicted": [
+              36,
+              45
+            ],
+            "iou": 0.7777777777777778,
+            "startError": 2
+          },
+          {
+            "step": 4,
+            "truth": [
+              46,
+              55
+            ],
+            "predicted": [
+              46.5,
+              58.5
+            ],
+            "iou": 0.68,
+            "startError": 0.5
+          },
+          {
+            "step": 5,
+            "truth": [
+              56,
+              60
+            ],
+            "predicted": [
+              58.4,
+              64
+            ],
+            "iou": 0.20000000000000018,
+            "startError": 2.3999999999999986
+          },
+          {
+            "step": 6,
+            "truth": [
+              70,
+              103
+            ],
+            "predicted": [
+              67,
+              106
+            ],
+            "iou": 0.8461538461538461,
+            "startError": 3
+          },
+          {
+            "step": 7,
+            "truth": [
+              104,
+              139
+            ],
+            "predicted": [
+              108,
+              112
+            ],
+            "iou": 0.11428571428571428,
+            "startError": 4
+          }
+        ]
+      },
+      "usage": {
+        "input": 16,
+        "cacheWrite": 39883,
+        "cacheRead": 162897,
+        "output": 5998
+      },
+      "costUSD": 0.38,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "LONG_WAIT_SECONDS": 60,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_10": {
+      "title": "CRISPR Delivery Protocol",
+      "duration": 95.361933,
+      "split": "dev",
+      "note": "Correct run.",
+      "labelledError": null,
+      "trueSkips": [],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 1,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 6
+      },
+      "localisation": {
+        "steps": 6,
+        "meanIoU": 0.609170653907496,
+        "hitsAtIoU03": 5,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              20
+            ],
+            "predicted": [
+              2,
+              19
+            ],
+            "iou": 0.85,
+            "startError": 2
+          },
+          {
+            "step": 2,
+            "truth": [
+              20,
+              34
+            ],
+            "predicted": [
+              20,
+              34
+            ],
+            "iou": 1,
+            "startError": 0
+          },
+          {
+            "step": 3,
+            "truth": [
+              34,
+              53
+            ],
+            "predicted": [
+              35,
+              49
+            ],
+            "iou": 0.7368421052631579,
+            "startError": 1
+          },
+          {
+            "step": 4,
+            "truth": [
+              53,
+              70
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          },
+          {
+            "step": 6,
+            "truth": [
+              70,
+              80
+            ],
+            "predicted": [
+              58,
+              77
+            ],
+            "iou": 0.3181818181818182,
+            "startError": 12
+          },
+          {
+            "step": 7,
+            "truth": [
+              80,
+              95
+            ],
+            "predicted": [
+              79,
+              92
+            ],
+            "iou": 0.75,
+            "startError": 1
+          }
+        ]
+      },
+      "usage": {
+        "input": 12,
+        "cacheWrite": 29717,
+        "cacheRead": 79955,
+        "output": 5072
+      },
+      "costUSD": 0.28,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "LONG_WAIT_SECONDS": 60,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_16": {
+      "title": "CRISPR Delivery",
+      "duration": 25.3253,
+      "split": "dev",
+      "note": "Reagent 2 added to reagent 3 instead of the mixing tube. 25 s excerpt: steps 1, 4, 5, 7 are outside the footage, not omitted.",
+      "labelledError": "Added reagent 2 to reagent 3 instead of mixing tube",
+      "trueSkips": [],
+      "errorSteps": [
+        2
+      ],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 1,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 6
+      },
+      "localisation": {
+        "steps": 3,
+        "meanIoU": 0.11538461538461535,
+        "hitsAtIoU03": 1,
+        "perStep": [
+          {
+            "step": 2,
+            "truth": [
+              6,
+              12
+            ],
+            "predicted": [
+              9.3,
+              13.8
+            ],
+            "iou": 0.34615384615384603,
+            "startError": 3.3000000000000007
+          },
+          {
+            "step": 3,
+            "truth": [
+              13,
+              15
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          },
+          {
+            "step": 6,
+            "truth": [
+              16,
+              25
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          }
+        ]
+      },
+      "usage": {
+        "input": 12,
+        "cacheWrite": 30097,
+        "cacheRead": 76172,
+        "output": 4782
+      },
+      "costUSD": 0.28,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "LONG_WAIT_SECONDS": 60,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_08": {
+      "title": "Splitting Cells in a Biosafety Cabinet",
+      "duration": 270.803867,
+      "split": "dev",
+      "note": "Published error (no incubation after TrypLE) has no step in this clip's protocol, so it cannot be scored per step.",
+      "labelledError": "didnt incubate after adding trypleE",
+      "trueSkips": [],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 17,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 5
+      },
+      "localisation": {
+        "steps": 19,
+        "meanIoU": 0.4519537480063796,
+        "hitsAtIoU03": 14,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              1,
+              6
+            ],
+            "predicted": [
+              1,
+              7
+            ],
+            "iou": 0.8333333333333334,
+            "startError": 0
+          },
+          {
+            "step": 3,
+            "truth": [
+              7,
+              22
+            ],
+            "predicted": [
+              9,
+              28
+            ],
+            "iou": 0.6190476190476191,
+            "startError": 2
+          },
+          {
+            "step": 4,
+            "truth": [
+              37,
+              44
+            ],
+            "predicted": [
+              36,
+              44
+            ],
+            "iou": 0.875,
+            "startError": 1
+          },
+          {
+            "step": 5,
+            "truth": [
+              49,
+              52
+            ],
+            "predicted": [
+              46,
+              55
+            ],
+            "iou": 0.3333333333333333,
+            "startError": 3
+          },
+          {
+            "step": 6,
+            "truth": [
+              59,
+              64
+            ],
+            "predicted": [
+              57,
+              64
+            ],
+            "iou": 0.7142857142857143,
+            "startError": 2
+          },
+          {
+            "step": 8,
+            "truth": [
+              77,
+              85
+            ],
+            "predicted": [
+              71,
+              86
+            ],
+            "iou": 0.5333333333333333,
+            "startError": 6
+          },
+          {
+            "step": 9,
+            "truth": [
+              87,
+              89
+            ],
+            "predicted": [
+              86,
+              90
+            ],
+            "iou": 0.5,
+            "startError": 1
+          },
+          {
+            "step": 10,
+            "truth": [
+              90,
+              94
+            ],
+            "predicted": [
+              90,
+              95
+            ],
+            "iou": 0.8,
+            "startError": 0
+          },
+          {
+            "step": 11,
+            "truth": [
+              106,
+              112
+            ],
+            "predicted": [
+              101,
+              112
+            ],
+            "iou": 0.5454545454545454,
+            "startError": 5
+          },
+          {
+            "step": 12,
+            "truth": [
+              119,
+              121
+            ],
+            "predicted": [
+              118,
+              122
+            ],
+            "iou": 0.5,
+            "startError": 1
+          },
+          {
+            "step": 13,
+            "truth": [
+              121,
+              148
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          },
+          {
+            "step": 14,
+            "truth": [
+              148,
+              152
+            ],
+            "predicted": [
+              138,
+              158
+            ],
+            "iou": 0.2,
+            "startError": 10
+          },
+          {
+            "step": 15,
+            "truth": [
+              154,
+              166
+            ],
+            "predicted": [
+              157,
+              164
+            ],
+            "iou": 0.5833333333333334,
+            "startError": 3
+          },
+          {
+            "step": 16,
+            "truth": [
+              173,
+              180
+            ],
+            "predicted": [
+              164,
+              172
+            ],
+            "iou": 0,
+            "startError": 9
+          },
+          {
+            "step": 18,
+            "truth": [
+              201,
+              206
+            ],
+            "predicted": [
+              209,
+              215
+            ],
+            "iou": 0,
+            "startError": 8
+          },
+          {
+            "step": 19,
+            "truth": [
+              210,
+              218
+            ],
+            "predicted": [
+              202,
+              208
+            ],
+            "iou": 0,
+            "startError": 8
+          },
+          {
+            "step": 20,
+            "truth": [
+              222,
+              225
+            ],
+            "predicted": [
+              222,
+              226
+            ],
+            "iou": 0.75,
+            "startError": 0
+          },
+          {
+            "step": 21,
+            "truth": [
+              230,
+              236
+            ],
+            "predicted": [
+              226,
+              238
+            ],
+            "iou": 0.5,
+            "startError": 4
+          },
+          {
+            "step": 22,
+            "truth": [
+              261,
+              270
+            ],
+            "predicted": [
+              240,
+              270
+            ],
+            "iou": 0.3,
+            "startError": 21
+          }
+        ]
+      },
+      "usage": {
+        "input": 26,
+        "cacheWrite": 62254,
+        "cacheRead": 446701,
+        "output": 10845
+      },
+      "costUSD": 0.71,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "LONG_WAIT_SECONDS": 60,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_23": {
+      "title": "Adding Cytokine into Cells",
+      "duration": 141.774967,
+      "split": "dev",
+      "note": "Did not change tips in step 2.",
+      "labelledError": "didnt chage tips in step 2",
+      "trueSkips": [],
+      "errorSteps": [
+        2
+      ],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 5,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 2
+      },
+      "localisation": {
+        "steps": 7,
+        "meanIoU": 0.7966306681823924,
+        "hitsAtIoU03": 7,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              5
+            ],
+            "predicted": [
+              1,
+              6
+            ],
+            "iou": 0.6666666666666666,
+            "startError": 1
+          },
+          {
+            "step": 2,
+            "truth": [
+              5,
+              15
+            ],
+            "predicted": [
+              8,
+              20
+            ],
+            "iou": 0.4666666666666667,
+            "startError": 3
+          },
+          {
+            "step": 3,
+            "truth": [
+              23,
+              38
+            ],
+            "predicted": [
+              24,
+              39
+            ],
+            "iou": 0.875,
+            "startError": 1
+          },
+          {
+            "step": 4,
+            "truth": [
+              43,
+              72
+            ],
+            "predicted": [
+              44,
+              72
+            ],
+            "iou": 0.9655172413793104,
+            "startError": 1
+          },
+          {
+            "step": 5,
+            "truth": [
+              82,
+              93
+            ],
+            "predicted": [
+              82,
+              93
+            ],
+            "iou": 1,
+            "startError": 0
+          },
+          {
+            "step": 6,
+            "truth": [
+              104,
+              124
+            ],
+            "predicted": [
+              101,
+              127
+            ],
+            "iou": 0.7692307692307693,
+            "startError": 3
+          },
+          {
+            "step": 7,
+            "truth": [
+              128,
+              138
+            ],
+            "predicted": [
+              127,
+              139
+            ],
+            "iou": 0.8333333333333334,
+            "startError": 1
+          }
+        ]
+      },
+      "usage": {
+        "input": 12,
+        "cacheWrite": 30628,
+        "cacheRead": 85767,
+        "output": 4035
+      },
+      "costUSD": 0.27,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "LONG_WAIT_SECONDS": 60,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_18": {
+      "title": "Bacterial Transformation Protocol",
+      "duration": 88.021267,
+      "split": "heldout",
+      "note": "Correct run.",
+      "labelledError": null,
+      "trueSkips": [],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 4,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 3
+      },
+      "localisation": {
+        "steps": 7,
+        "meanIoU": 0.5207303974221268,
+        "hitsAtIoU03": 6,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              28
+            ],
+            "predicted": [
+              5,
+              21
+            ],
+            "iou": 0.5714285714285714,
+            "startError": 5
+          },
+          {
+            "step": 2,
+            "truth": [
+              28,
+              32
+            ],
+            "predicted": [
+              25,
+              33
+            ],
+            "iou": 0.5,
+            "startError": 3
+          },
+          {
+            "step": 3,
+            "truth": [
+              32,
+              38
+            ],
+            "predicted": [
+              33.5,
+              41.5
+            ],
+            "iou": 0.47368421052631576,
+            "startError": 1.5
+          },
+          {
+            "step": 4,
+            "truth": [
+              38,
+              50
+            ],
+            "predicted": [
+              41.5,
+              52
+            ],
+            "iou": 0.6071428571428571,
+            "startError": 3.5
+          },
+          {
+            "step": 5,
+            "truth": [
+              50,
+              58
+            ],
+            "predicted": [
+              52,
+              60
+            ],
+            "iou": 0.6,
+            "startError": 2
+          },
+          {
+            "step": 6,
+            "truth": [
+              58,
+              85
+            ],
+            "predicted": [
+              60,
+              86
+            ],
+            "iou": 0.8928571428571429,
+            "startError": 2
+          },
+          {
+            "step": 7,
+            "truth": [
+              85,
+              88
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          }
+        ]
+      },
+      "usage": {
+        "input": 14,
+        "cacheWrite": 33898,
+        "cacheRead": 97246,
+        "output": 4713
+      },
+      "costUSD": 0.3,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_19": {
+      "title": "Bacterial Transformation",
+      "duration": 86.3863,
+      "split": "heldout",
+      "note": "Correct run.",
+      "labelledError": null,
+      "trueSkips": [],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 5,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 2
+      },
+      "localisation": {
+        "steps": 7,
+        "meanIoU": 0.5463867580128978,
+        "hitsAtIoU03": 5,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              28
+            ],
+            "predicted": [
+              20,
+              22.5
+            ],
+            "iou": 0.08928571428571429,
+            "startError": 20
+          },
+          {
+            "step": 2,
+            "truth": [
+              28,
+              31
+            ],
+            "predicted": [
+              28.5,
+              30.5
+            ],
+            "iou": 0.6666666666666666,
+            "startError": 0.5
+          },
+          {
+            "step": 3,
+            "truth": [
+              31,
+              38
+            ],
+            "predicted": [
+              31,
+              38.2
+            ],
+            "iou": 0.9722222222222219,
+            "startError": 0
+          },
+          {
+            "step": 4,
+            "truth": [
+              38,
+              45
+            ],
+            "predicted": [
+              38,
+              47.4
+            ],
+            "iou": 0.7446808510638299,
+            "startError": 0
+          },
+          {
+            "step": 5,
+            "truth": [
+              45,
+              53
+            ],
+            "predicted": [
+              47.4,
+              55.8
+            ],
+            "iou": 0.5185185185185188,
+            "startError": 2.3999999999999986
+          },
+          {
+            "step": 6,
+            "truth": [
+              53,
+              83
+            ],
+            "predicted": [
+              57,
+              84.2
+            ],
+            "iou": 0.8333333333333333,
+            "startError": 4
+          },
+          {
+            "step": 7,
+            "truth": [
+              83,
+              86
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          }
+        ]
+      },
+      "usage": {
+        "input": 14,
+        "cacheWrite": 35931,
+        "cacheRead": 113697,
+        "output": 6160
+      },
+      "costUSD": 0.35,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_20": {
+      "title": "Bacterial Transformation Protocol",
+      "duration": 64.1641,
+      "split": "heldout",
+      "note": "Skipped steps 2 and 5.",
+      "labelledError": "Skipped step 2 and step 5 in Mock_Transfornation.txt",
+      "trueSkips": [
+        2,
+        5
+      ],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": false,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 3,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 4
+      },
+      "localisation": {
+        "steps": 5,
+        "meanIoU": 0.43972222222222224,
+        "hitsAtIoU03": 3,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              18
+            ],
+            "predicted": [
+              1,
+              6
+            ],
+            "iou": 0.2777777777777778,
+            "startError": 1
+          },
+          {
+            "step": 3,
+            "truth": [
+              19,
+              25
+            ],
+            "predicted": [
+              7.3,
+              26.5
+            ],
+            "iou": 0.3125,
+            "startError": 11.7
+          },
+          {
+            "step": 4,
+            "truth": [
+              26,
+              36
+            ],
+            "predicted": [
+              26.5,
+              35.5
+            ],
+            "iou": 0.9,
+            "startError": 0.5
+          },
+          {
+            "step": 6,
+            "truth": [
+              37,
+              59
+            ],
+            "predicted": [
+              42,
+              61
+            ],
+            "iou": 0.7083333333333334,
+            "startError": 5
+          },
+          {
+            "step": 7,
+            "truth": [
+              60,
+              64
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          }
+        ]
+      },
+      "usage": {
+        "input": 16,
+        "cacheWrite": 33080,
+        "cacheRead": 115375,
+        "output": 5875
+      },
+      "costUSD": 0.33,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_21": {
+      "title": "Bacterial Transformation Protocol",
+      "duration": 63.6636,
+      "split": "heldout",
+      "note": "Skipped step 2; the spreading part of step 6 was omitted.",
+      "labelledError": "Skipped step 2 in Mock_Transfornation.txt and Skipped spreading E. coli on the plate in step 6.",
+      "trueSkips": [
+        2
+      ],
+      "errorSteps": [],
+      "eitherSteps": [
+        6
+      ],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": false,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 2,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 5
+      },
+      "localisation": {
+        "steps": 6,
+        "meanIoU": 0.5238672438672439,
+        "hitsAtIoU03": 4,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              21
+            ],
+            "predicted": [
+              12.5,
+              16.5
+            ],
+            "iou": 0.19047619047619047,
+            "startError": 12.5
+          },
+          {
+            "step": 3,
+            "truth": [
+              22,
+              25
+            ],
+            "predicted": [
+              23.5,
+              27.5
+            ],
+            "iou": 0.2727272727272727,
+            "startError": 1.5
+          },
+          {
+            "step": 4,
+            "truth": [
+              26,
+              36
+            ],
+            "predicted": [
+              27.5,
+              38.5
+            ],
+            "iou": 0.68,
+            "startError": 1.5
+          },
+          {
+            "step": 5,
+            "truth": [
+              37,
+              44
+            ],
+            "predicted": [
+              38.5,
+              45
+            ],
+            "iou": 0.6875,
+            "startError": 1.5
+          },
+          {
+            "step": 6,
+            "truth": [
+              45,
+              59
+            ],
+            "predicted": [
+              46,
+              61
+            ],
+            "iou": 0.8125,
+            "startError": 1
+          },
+          {
+            "step": 7,
+            "truth": [
+              60,
+              63
+            ],
+            "predicted": [
+              61.5,
+              63
+            ],
+            "iou": 0.5,
+            "startError": 1.5
+          }
+        ]
+      },
+      "usage": {
+        "input": 16,
+        "cacheWrite": 32952,
+        "cacheRead": 117275,
+        "output": 5491
+      },
+      "costUSD": 0.32,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_22": {
+      "title": "Adding Cytokine into Cells",
+      "duration": 161.194367,
+      "split": "heldout",
+      "note": "Correct run.",
+      "labelledError": null,
+      "trueSkips": [],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 5,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 2
+      },
+      "localisation": {
+        "steps": 7,
+        "meanIoU": 0.7292650835754284,
+        "hitsAtIoU03": 7,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              10
+            ],
+            "predicted": [
+              4,
+              10
+            ],
+            "iou": 0.6,
+            "startError": 4
+          },
+          {
+            "step": 2,
+            "truth": [
+              10,
+              22
+            ],
+            "predicted": [
+              11,
+              25
+            ],
+            "iou": 0.7333333333333333,
+            "startError": 1
+          },
+          {
+            "step": 3,
+            "truth": [
+              22,
+              52
+            ],
+            "predicted": [
+              31,
+              50
+            ],
+            "iou": 0.6333333333333333,
+            "startError": 9
+          },
+          {
+            "step": 4,
+            "truth": [
+              52,
+              88
+            ],
+            "predicted": [
+              56,
+              84
+            ],
+            "iou": 0.7777777777777778,
+            "startError": 4
+          },
+          {
+            "step": 5,
+            "truth": [
+              88,
+              117
+            ],
+            "predicted": [
+              90,
+              113
+            ],
+            "iou": 0.7931034482758621,
+            "startError": 2
+          },
+          {
+            "step": 6,
+            "truth": [
+              117,
+              140
+            ],
+            "predicted": [
+              119,
+              141
+            ],
+            "iou": 0.875,
+            "startError": 2
+          },
+          {
+            "step": 7,
+            "truth": [
+              140,
+              151
+            ],
+            "predicted": [
+              142,
+              153
+            ],
+            "iou": 0.6923076923076923,
+            "startError": 2
+          }
+        ]
+      },
+      "usage": {
+        "input": 16,
+        "cacheWrite": 30159,
+        "cacheRead": 127651,
+        "output": 4500
+      },
+      "costUSD": 0.29,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_24": {
+      "title": "Adding Cytokines to Cell Culture",
+      "duration": 129.762967,
+      "split": "heldout",
+      "note": "Did not change tips in steps 2 and 5.",
+      "labelledError": "didnt chage tips in step 2 and step5",
+      "trueSkips": [],
+      "errorSteps": [
+        2,
+        5
+      ],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 5,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 2
+      },
+      "localisation": {
+        "steps": 7,
+        "meanIoU": 0.7216962741760222,
+        "hitsAtIoU03": 7,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              6
+            ],
+            "predicted": [
+              3.5,
+              6.8
+            ],
+            "iou": 0.36764705882352944,
+            "startError": 3.5
+          },
+          {
+            "step": 2,
+            "truth": [
+              7,
+              23
+            ],
+            "predicted": [
+              7,
+              22
+            ],
+            "iou": 0.9375,
+            "startError": 0
+          },
+          {
+            "step": 3,
+            "truth": [
+              24,
+              43
+            ],
+            "predicted": [
+              26,
+              43
+            ],
+            "iou": 0.8947368421052632,
+            "startError": 2
+          },
+          {
+            "step": 4,
+            "truth": [
+              62,
+              74
+            ],
+            "predicted": [
+              50,
+              75
+            ],
+            "iou": 0.48,
+            "startError": 12
+          },
+          {
+            "step": 5,
+            "truth": [
+              82,
+              90
+            ],
+            "predicted": [
+              79,
+              92
+            ],
+            "iou": 0.6153846153846154,
+            "startError": 3
+          },
+          {
+            "step": 6,
+            "truth": [
+              98,
+              116
+            ],
+            "predicted": [
+              99,
+              117
+            ],
+            "iou": 0.8947368421052632,
+            "startError": 1
+          },
+          {
+            "step": 7,
+            "truth": [
+              117,
+              129
+            ],
+            "predicted": [
+              118,
+              129.762967
+            ],
+            "iou": 0.8618685608134846,
+            "startError": 1
+          }
+        ]
+      },
+      "usage": {
+        "input": 8,
+        "cacheWrite": 30197,
+        "cacheRead": 34911,
+        "output": 4452
+      },
+      "costUSD": 0.25,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_25": {
+      "title": "Adding Cytokine into Cells",
+      "duration": 103.5034,
+      "split": "heldout",
+      "note": "Skipped step 3 (aspirate old medium).",
+      "labelledError": "skipped step 3",
+      "trueSkips": [
+        3
+      ],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [
+        4
+      ],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [
+        4
+      ],
+      "exact": false,
+      "predictedError": true,
+      "contradictions": [
+        {
+          "step": 4,
+          "title": "Add pre-warmed fresh medium",
+          "status": "contradicted",
+          "observed": "No aspiration of old medium is seen before this addition."
+        }
+      ],
+      "counts": {
+        "verified": 5,
+        "contradicted": 1,
+        "skipped": 0,
+        "unverifiable": 1
+      },
+      "localisation": {
+        "steps": 6,
+        "meanIoU": 0.7235280151946819,
+        "hitsAtIoU03": 6,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              3
+            ],
+            "predicted": [
+              0.5,
+              5
+            ],
+            "iou": 0.5,
+            "startError": 0.5
+          },
+          {
+            "step": 2,
+            "truth": [
+              4,
+              17
+            ],
+            "predicted": [
+              4.5,
+              17
+            ],
+            "iou": 0.9615384615384616,
+            "startError": 0.5
+          },
+          {
+            "step": 4,
+            "truth": [
+              29,
+              44
+            ],
+            "predicted": [
+              28,
+              46
+            ],
+            "iou": 0.8333333333333334,
+            "startError": 1
+          },
+          {
+            "step": 5,
+            "truth": [
+              45,
+              62
+            ],
+            "predicted": [
+              52,
+              63
+            ],
+            "iou": 0.5555555555555556,
+            "startError": 7
+          },
+          {
+            "step": 6,
+            "truth": [
+              74,
+              89
+            ],
+            "predicted": [
+              72,
+              92
+            ],
+            "iou": 0.75,
+            "startError": 2
+          },
+          {
+            "step": 7,
+            "truth": [
+              90,
+              103
+            ],
+            "predicted": [
+              93,
+              103.5
+            ],
+            "iou": 0.7407407407407407,
+            "startError": 3
+          }
+        ]
+      },
+      "usage": {
+        "input": 16,
+        "cacheWrite": 28328,
+        "cacheRead": 121385,
+        "output": 4664
+      },
+      "costUSD": 0.28,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "GAP_SECONDS": 2,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    },
+    "DJI_11": {
+      "title": "CRISPR Delivery Protocol",
+      "duration": 69.035633,
+      "split": "dev",
+      "note": "Skipped reagent 2. Mixing (39-48 s) is done by pipetting up and down, which looks like an addition. Became dev data after the user's Trial run (2026-10-04).",
+      "labelledError": "Skipped reagent 2 addition to mixture.",
+      "trueSkips": [
+        2
+      ],
+      "errorSteps": [],
+      "eitherSteps": [],
+      "skipped": [],
+      "contradicted": [],
+      "skipsCaught": [],
+      "skipsFlagged": [],
+      "errorsCaught": [],
+      "falseAlarms": [],
+      "exact": false,
+      "predictedError": false,
+      "contradictions": [],
+      "counts": {
+        "verified": 1,
+        "contradicted": 0,
+        "skipped": 0,
+        "unverifiable": 6
+      },
+      "localisation": {
+        "steps": 6,
+        "meanIoU": 0.3480118914901524,
+        "hitsAtIoU03": 3,
+        "perStep": [
+          {
+            "step": 1,
+            "truth": [
+              0,
+              23
+            ],
+            "predicted": [
+              3,
+              18
+            ],
+            "iou": 0.6521739130434783,
+            "startError": 3
+          },
+          {
+            "step": 3,
+            "truth": [
+              24,
+              38
+            ],
+            "predicted": [
+              38,
+              50
+            ],
+            "iou": 0,
+            "startError": 14
+          },
+          {
+            "step": 4,
+            "truth": [
+              39,
+              48
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          },
+          {
+            "step": 5,
+            "truth": [
+              48,
+              49
+            ],
+            "predicted": null,
+            "iou": 0,
+            "startError": null
+          },
+          {
+            "step": 6,
+            "truth": [
+              49,
+              55
+            ],
+            "predicted": [
+              51,
+              55
+            ],
+            "iou": 0.6666666666666666,
+            "startError": 2
+          },
+          {
+            "step": 7,
+            "truth": [
+              56,
+              69
+            ],
+            "predicted": [
+              56,
+              66
+            ],
+            "iou": 0.7692307692307693,
+            "startError": 0
+          }
+        ]
+      },
+      "usage": {
+        "input": 14,
+        "cacheWrite": 27232,
+        "cacheRead": 94296,
+        "output": 5165
+      },
+      "costUSD": 0.28,
+      "rules": {
+        "MIN_CONFIDENCE": 0.8,
+        "LONG_WAIT_SECONDS": 60,
+        "ORDER_TOLERANCE_SECONDS": 2
+      }
+    }
+  },
+  "generatedAt": "2026-10-04T00:11:23.026Z"
+}

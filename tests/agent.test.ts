@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { runAgent, unverifiableReason, toContract, type AgentCall } from '../src/lib/agent';
+import { adjacentGroups, runAgent, unverifiableReason, toContract, type AgentCall } from '../src/lib/agent';
 import { verifyMethod } from '../src/lib/conformance';
 const method = toContract({ title: 'Mock', summary: '', steps: [
   { title: 'Add reagent', description: 'Add reagent 1 to the tube.', defining_action: '', visual_group: '', checks: ['Tip enters the tube'], caveats: ['Sterility'], criticality: 'critical', category: 'action' },
@@ -69,6 +69,12 @@ describe('Checks video cannot clearly establish', () => {
     const m = toContract({ title: 'T', summary: '', steps: [{ title: 'Add', description: 'Add 5 µL.', defining_action: '', visual_group: '', checks: ['Tip enters the tube', 'Pipette volume reads 5 µL'], caveats: [], criticality: 'critical', category: 'action' }] }, 'x');
     expect(m.requirements[0].checks).toEqual(['Tip enters the tube']);
     expect(m.requirements[0].caveats).toEqual(['Measured quantity, not verifiable from video: Pipette volume reads 5 µL']);
+  });
+  it('keeps look-alike groups only for consecutive steps', () => {
+    expect(adjacentGroups(['', 'ice', 'heat', 'ice', ''])).toEqual([undefined, undefined, undefined, undefined, undefined]);
+    expect(adjacentGroups(['add', 'add', 'add', 'mix'])).toEqual(['add', 'add', 'add', undefined]);
+    expect(adjacentGroups(['add', 'add', 'mix', 'add', 'add', ' '])).toEqual(['add', 'add', undefined, 'add (2)', 'add (2)', undefined]);
+    expect(adjacentGroups(['spray', 'gather', 'spray'])).toEqual([undefined, undefined, undefined]);
   });
   it('carries the defining action and look-alike group into the contract, dropping empty ones', () => {
     const step = (title: string, group: string) => ({ title, description: title, defining_action: `${title} action`, visual_group: group, checks: ['Tip enters the tube'], caveats: [], criticality: 'critical' as const, category: 'action' as const });
