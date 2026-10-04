@@ -30,7 +30,7 @@
           "step": 3,
           "title": "Incubate mixture on ice",
           "status": "skipped",
-          "observed": "Between the flicking (about 45 s) and the move to the thermal cycler (about 46.4 s), the tube stays in the hand above the ice bucket and is carried straight to the cycler. It is never placed in the ice."
+          "observed": "After flicking (which happens while the tube is held over the ice bucket), the tube goes straight to the thermal cycler at about 46–48 s. It is never placed into the ice and left there."
         }
       ],
       "counts": {
@@ -41,8 +41,8 @@
       },
       "localisation": {
         "steps": 6,
-        "meanIoU": 0.5794683406959622,
-        "hitsAtIoU03": 4,
+        "meanIoU": 0.6083236208236208,
+        "hitsAtIoU03": 5,
         "perStep": [
           {
             "step": 1,
@@ -51,11 +51,11 @@
               33
             ],
             "predicted": [
-              3,
-              32
+              4,
+              33
             ],
             "iou": 0.8787878787878788,
-            "startError": 3
+            "startError": 4
           },
           {
             "step": 2,
@@ -64,11 +64,11 @@
               45
             ],
             "predicted": [
-              37,
-              45.5
+              38,
+              46
             ],
-            "iou": 0.8235294117647058,
-            "startError": 1
+            "iou": 0.875,
+            "startError": 0
           },
           {
             "step": 4,
@@ -77,11 +77,11 @@
               55
             ],
             "predicted": [
-              46.4,
-              57.5
+              46,
+              58
             ],
-            "iou": 0.7478260869565219,
-            "startError": 0.3999999999999986
+            "iou": 0.75,
+            "startError": 0
           },
           {
             "step": 5,
@@ -90,11 +90,11 @@
               60
             ],
             "predicted": [
-              57.1,
-              71
+              57,
+              66
             ],
-            "iou": 0.19333333333333325,
-            "startError": 1.1000000000000014
+            "iou": 0.3,
+            "startError": 1
           },
           {
             "step": 6,
@@ -103,10 +103,10 @@
               103
             ],
             "predicted": [
-              73,
+              67,
               106
             ],
-            "iou": 0.8333333333333334,
+            "iou": 0.8461538461538461,
             "startError": 3
           },
           {
@@ -122,12 +122,12 @@
         ]
       },
       "usage": {
-        "input": 16,
-        "cacheWrite": 38804,
-        "cacheRead": 149739,
-        "output": 5348
+        "input": 18,
+        "cacheWrite": 38826,
+        "cacheRead": 183430,
+        "output": 4948
       },
-      "costUSD": 0.36,
+      "costUSD": 0.37,
       "rules": {
         "MIN_CONFIDENCE": 0.8,
         "LONG_WAIT_SECONDS": 60,
@@ -160,8 +160,8 @@
       },
       "localisation": {
         "steps": 6,
-        "meanIoU": 0.609170653907496,
-        "hitsAtIoU03": 5,
+        "meanIoU": 0.7544044878410204,
+        "hitsAtIoU03": 6,
         "perStep": [
           {
             "step": 1,
@@ -170,11 +170,11 @@
               20
             ],
             "predicted": [
-              2,
-              19
+              1,
+              18
             ],
             "iou": 0.85,
-            "startError": 2
+            "startError": 1
           },
           {
             "step": 2,
@@ -183,11 +183,11 @@
               34
             ],
             "predicted": [
-              20,
+              19,
               34
             ],
-            "iou": 1,
-            "startError": 0
+            "iou": 0.9333333333333333,
+            "startError": 1
           },
           {
             "step": 3,
@@ -196,11 +196,11 @@
               53
             ],
             "predicted": [
-              35,
+              34,
               49
             ],
-            "iou": 0.7368421052631579,
-            "startError": 1
+            "iou": 0.7894736842105263,
+            "startError": 0
           },
           {
             "step": 4,
@@ -208,9 +208,12 @@
               53,
               70
             ],
-            "predicted": null,
-            "iou": 0,
-            "startError": null
+            "predicted": [
+              55,
+              65
+            ],
+            "iou": 0.5882352941176471,
+            "startError": 2
           },
           {
             "step": 6,
@@ -219,11 +222,11 @@
               80
             ],
             "predicted": [
-              58,
-              77
+              67,
+              78
             ],
-            "iou": 0.3181818181818182,
-            "startError": 12
+            "iou": 0.6153846153846154,
+            "startError": 3
           },
           {
             "step": 7,
@@ -241,12 +244,12 @@
         ]
       },
       "usage": {
-        "input": 12,
-        "cacheWrite": 29717,
-        "cacheRead": 79955,
-        "output": 5072
+        "input": 14,
+        "cacheWrite": 29852,
+        "cacheRead": 101931,
+        "output": 5505
       },
-      "costUSD": 0.28,
+      "costUSD": 0.3,
       "rules": {
         "MIN_CONFIDENCE": 0.8,
         "LONG_WAIT_SECONDS": 60,
@@ -281,7 +284,7 @@
       },
       "localisation": {
         "steps": 3,
-        "meanIoU": 0.11538461538461535,
+        "meanIoU": 0.11842105263157893,
         "hitsAtIoU03": 1,
         "perStep": [
           {
@@ -292,9 +295,9 @@
             ],
             "predicted": [
               9.3,
-              13.8
+              13.6
             ],
-            "iou": 0.34615384615384603,
+            "iou": 0.3552631578947368,
             "startError": 3.3000000000000007
           },
           {
@@ -320,12 +323,12 @@
         ]
       },
       "usage": {
-        "input": 12,
-        "cacheWrite": 30097,
-        "cacheRead": 76172,
-        "output": 4782
+        "input": 14,
+        "cacheWrite": 30366,
+        "cacheRead": 101083,
+        "output": 6109
       },
-      "costUSD": 0.28,
+      "costUSD": 0.31,
       "rules": {
         "MIN_CONFIDENCE": 0.8,
         "LONG_WAIT_SECONDS": 60,
@@ -341,36 +344,25 @@
       "trueSkips": [],
       "errorSteps": [],
       "eitherSteps": [],
-      "skipped": [
-        7
-      ],
+      "skipped": [],
       "contradicted": [],
       "skipsCaught": [],
       "skipsFlagged": [],
       "errorsCaught": [],
-      "falseAlarms": [
-        7
-      ],
-      "exact": false,
-      "predictedError": true,
-      "contradictions": [
-        {
-          "step": 7,
-          "title": "Tilt dish to remove residual",
-          "status": "skipped",
-          "observed": "One of Aspirate old medium / Tilt dish to remove residual was not performed (they look the same on camera, so which one cannot be told). There is only one aspiration of the medium. The dish was tilted throughout it, but there was no second aspiration of residual medium from the edge before PBS was added."
-        }
-      ],
+      "falseAlarms": [],
+      "exact": true,
+      "predictedError": false,
+      "contradictions": [],
       "counts": {
         "verified": 12,
         "contradicted": 0,
-        "skipped": 1,
-        "unverifiable": 9
+        "skipped": 0,
+        "unverifiable": 10
       },
       "localisation": {
         "steps": 19,
-        "meanIoU": 0.46249070202243586,
-        "hitsAtIoU03": 12,
+        "meanIoU": 0.36693824296799127,
+        "hitsAtIoU03": 10,
         "perStep": [
           {
             "step": 1,
@@ -392,11 +384,11 @@
               22
             ],
             "predicted": [
-              12,
-              32
+              15,
+              31
             ],
-            "iou": 0.4,
-            "startError": 5
+            "iou": 0.2916666666666667,
+            "startError": 8
           },
           {
             "step": 4,
@@ -405,11 +397,11 @@
               44
             ],
             "predicted": [
-              37,
+              36,
               46
             ],
-            "iou": 0.7777777777777778,
-            "startError": 0
+            "iou": 0.7,
+            "startError": 1
           },
           {
             "step": 5,
@@ -418,11 +410,11 @@
               52
             ],
             "predicted": [
-              48,
+              47,
               54
             ],
-            "iou": 0.5,
-            "startError": 1
+            "iou": 0.42857142857142855,
+            "startError": 2
           },
           {
             "step": 6,
@@ -431,11 +423,11 @@
               64
             ],
             "predicted": [
-              59.5,
-              64.5
+              57,
+              64
             ],
-            "iou": 0.8181818181818182,
-            "startError": 0.5
+            "iou": 0.7142857142857143,
+            "startError": 2
           },
           {
             "step": 8,
@@ -444,11 +436,11 @@
               85
             ],
             "predicted": [
-              76,
-              85
+              73,
+              86
             ],
-            "iou": 0.8888888888888888,
-            "startError": 1
+            "iou": 0.6153846153846154,
+            "startError": 4
           },
           {
             "step": 9,
@@ -467,11 +459,11 @@
               94
             ],
             "predicted": [
-              90,
-              95
+              89,
+              96
             ],
-            "iou": 0.8,
-            "startError": 0
+            "iou": 0.5714285714285714,
+            "startError": 1
           },
           {
             "step": 11,
@@ -480,11 +472,11 @@
               112
             ],
             "predicted": [
-              102,
+              101,
               113
             ],
-            "iou": 0.5454545454545454,
-            "startError": 4
+            "iou": 0.5,
+            "startError": 5
           },
           {
             "step": 12,
@@ -493,11 +485,11 @@
               121
             ],
             "predicted": [
-              118.5,
-              121.5
+              119,
+              122
             ],
             "iou": 0.6666666666666666,
-            "startError": 0.5
+            "startError": 0
           },
           {
             "step": 13,
@@ -516,11 +508,11 @@
               152
             ],
             "predicted": [
-              138,
+              136,
               159
             ],
-            "iou": 0.19047619047619047,
-            "startError": 10
+            "iou": 0.17391304347826086,
+            "startError": 12
           },
           {
             "step": 15,
@@ -530,9 +522,9 @@
             ],
             "predicted": [
               158,
-              164
+              166
             ],
-            "iou": 0.5,
+            "iou": 0.6666666666666666,
             "startError": 4
           },
           {
@@ -542,11 +534,11 @@
               180
             ],
             "predicted": [
-              163,
-              177
+              165,
+              174
             ],
-            "iou": 0.23529411764705882,
-            "startError": 10
+            "iou": 0.06666666666666667,
+            "startError": 8
           },
           {
             "step": 18,
@@ -555,11 +547,11 @@
               206
             ],
             "predicted": [
-              212,
-              221
+              208,
+              218
             ],
             "iou": 0,
-            "startError": 11
+            "startError": 7
           },
           {
             "step": 19,
@@ -568,11 +560,11 @@
               218
             ],
             "predicted": [
-              203,
-              209
+              200,
+              210
             ],
             "iou": 0,
-            "startError": 7
+            "startError": 10
           },
           {
             "step": 20,
@@ -580,12 +572,9 @@
               222,
               225
             ],
-            "predicted": [
-              222,
-              226
-            ],
-            "iou": 0.75,
-            "startError": 0
+            "predicted": null,
+            "iou": 0,
+            "startError": null
           },
           {
             "step": 21,
@@ -595,9 +584,9 @@
             ],
             "predicted": [
               226,
-              236
+              238
             ],
-            "iou": 0.6,
+            "iou": 0.5,
             "startError": 4
           },
           {
@@ -607,21 +596,21 @@
               270
             ],
             "predicted": [
-              238,
+              233,
               270
             ],
-            "iou": 0.28125,
-            "startError": 23
+            "iou": 0.24324324324324326,
+            "startError": 28
           }
         ]
       },
       "usage": {
-        "input": 28,
-        "cacheWrite": 60771,
-        "cacheRead": 441731,
-        "output": 10479
+        "input": 26,
+        "cacheWrite": 59904,
+        "cacheRead": 409777,
+        "output": 10839
       },
-      "costUSD": 0.69,
+      "costUSD": 0.68,
       "rules": {
         "MIN_CONFIDENCE": 0.8,
         "LONG_WAIT_SECONDS": 60,
@@ -649,14 +638,14 @@
       "predictedError": false,
       "contradictions": [],
       "counts": {
-        "verified": 5,
+        "verified": 4,
         "contradicted": 0,
         "skipped": 0,
-        "unverifiable": 2
+        "unverifiable": 3
       },
       "localisation": {
         "steps": 7,
-        "meanIoU": 0.7966306681823924,
+        "meanIoU": 0.78974558050645,
         "hitsAtIoU03": 7,
         "perStep": [
           {
@@ -679,11 +668,11 @@
               15
             ],
             "predicted": [
-              8,
+              7,
               20
             ],
-            "iou": 0.4666666666666667,
-            "startError": 3
+            "iou": 0.5333333333333333,
+            "startError": 2
           },
           {
             "step": 3,
@@ -692,11 +681,11 @@
               38
             ],
             "predicted": [
-              24,
+              25,
               39
             ],
-            "iou": 0.875,
-            "startError": 1
+            "iou": 0.8125,
+            "startError": 2
           },
           {
             "step": 4,
@@ -705,10 +694,10 @@
               72
             ],
             "predicted": [
-              44,
+              42,
               72
             ],
-            "iou": 0.9655172413793104,
+            "iou": 0.9666666666666667,
             "startError": 1
           },
           {
@@ -718,11 +707,11 @@
               93
             ],
             "predicted": [
-              82,
+              80,
               93
             ],
-            "iou": 1,
-            "startError": 0
+            "iou": 0.8461538461538461,
+            "startError": 2
           },
           {
             "step": 6,
@@ -731,11 +720,11 @@
               124
             ],
             "predicted": [
-              101,
-              127
+              103,
+              126
             ],
-            "iou": 0.7692307692307693,
-            "startError": 3
+            "iou": 0.8695652173913043,
+            "startError": 1
           },
           {
             "step": 7,
@@ -744,19 +733,19 @@
               138
             ],
             "predicted": [
-              127,
-              139
+              128,
+              140
             ],
             "iou": 0.8333333333333334,
-            "startError": 1
+            "startError": 0
           }
         ]
       },
       "usage": {
-        "input": 12,
-        "cacheWrite": 30628,
-        "cacheRead": 85767,
-        "output": 4035
+        "input": 14,
+        "cacheWrite": 30219,
+        "cacheRead": 99442,
+        "output": 4017
       },
       "costUSD": 0.27,
       "rules": {
@@ -1700,7 +1689,7 @@
       },
       "localisation": {
         "steps": 6,
-        "meanIoU": 0.5003005661573436,
+        "meanIoU": 0.4786092530657748,
         "hitsAtIoU03": 5,
         "perStep": [
           {
@@ -1710,11 +1699,11 @@
               23
             ],
             "predicted": [
-              3.5,
+              4,
               11
             ],
-            "iou": 0.32608695652173914,
-            "startError": 3.5
+            "iou": 0.30434782608695654,
+            "startError": 4
           },
           {
             "step": 3,
@@ -1723,11 +1712,11 @@
               38
             ],
             "predicted": [
-              21,
-              32
+              22,
+              34
             ],
-            "iou": 0.47058823529411764,
-            "startError": 3
+            "iou": 0.625,
+            "startError": 2
           },
           {
             "step": 4,
@@ -1736,11 +1725,11 @@
               48
             ],
             "predicted": [
-              37,
-              50
+              43,
+              49
             ],
-            "iou": 0.6923076923076923,
-            "startError": 2
+            "iou": 0.5,
+            "startError": 4
           },
           {
             "step": 5,
@@ -1759,11 +1748,11 @@
               55
             ],
             "predicted": [
-              51,
+              50.5,
               55
             ],
-            "iou": 0.6666666666666666,
-            "startError": 2
+            "iou": 0.75,
+            "startError": 1.5
           },
           {
             "step": 7,
@@ -1772,21 +1761,21 @@
               69
             ],
             "predicted": [
-              56,
-              67
+              57,
+              66
             ],
-            "iou": 0.8461538461538461,
-            "startError": 0
+            "iou": 0.6923076923076923,
+            "startError": 1
           }
         ]
       },
       "usage": {
-        "input": 14,
-        "cacheWrite": 27159,
-        "cacheRead": 87542,
-        "output": 5164
+        "input": 16,
+        "cacheWrite": 27377,
+        "cacheRead": 109182,
+        "output": 4965
       },
-      "costUSD": 0.27,
+      "costUSD": 0.28,
       "rules": {
         "MIN_CONFIDENCE": 0.8,
         "LONG_WAIT_SECONDS": 60,
@@ -1794,5 +1783,5 @@
       }
     }
   },
-  "generatedAt": "2026-10-04T00:20:34.077Z"
+  "generatedAt": "2026-10-04T02:46:47.925Z"
 }
