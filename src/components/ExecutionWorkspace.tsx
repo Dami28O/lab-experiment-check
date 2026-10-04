@@ -9,6 +9,9 @@ import { Timeline, type TimelineView } from './Timeline';
 import { CoverageBar } from './CoverageBar';
 import type { MethodContract, Observation, Run, VerificationResult } from '../lib/types';
 
+/** Detail checks a verified step could not show (manner, follow-through); the step still counts as done. */
+const details = (result?: VerificationResult) => result?.status === 'verified' ? result.unconfirmedDetails ?? [] : [];
+
 export function ExecutionWorkspace({ run, method, results, selected, currentTime, playing, videoRef, sourceLabel, onSelect, onSeek, onTimeUpdate, onPlaying, onMethod, onNotice }: {
   run: Run; method: MethodContract; results: Record<string, VerificationResult>;
   selected: string; currentTime: number; playing: boolean; videoRef: RefObject<HTMLVideoElement | null>; sourceLabel: string;
@@ -65,6 +68,7 @@ export function ExecutionWorkspace({ run, method, results, selected, currentTime
           </div>
           {o?.checkResults && <ul className="check-list">{o.checkResults.map(c => <li key={c.check}><CheckIconFor result={c.result}/><div><strong>{c.check}</strong><span>{c.note}</span></div></li>)}</ul>}
           {!o?.checkResults && result.status === 'unverifiable' && <p className="muted small">Cannot establish: {result.missingEvidence.map(readable).join(', ')}.</p>}
+          {details(result).length > 0 && <p className="details-note">Done. Not confirmed from the recording: {details(result).join('; ')}.</p>}
           {result.status === 'skipped' && <p className="deviation">Skipped: the agent watched where it belongs, between {time(result.between[0])} and {time(result.between[1])}, and saw it not done. {result.reason}</p>}
           {result.status === 'contradicted' && !o?.checkResults?.some(c => c.result === 'contradicted') && <p className="deviation">Expected {describe(result.expected)}; observed {describe(result.observed)}.</p>}
           {o && o.evidence.some(e => e.kind === 'video') && <div className="evidence-times"><span className="label">Evidence</span>{o.evidence.filter(e => e.kind === 'video').map(e => <button key={e.id} onClick={() => seek(e.timestamp)}><span className="mono">{time(e.timestamp)}</span>{e.description}</button>)}</div>}
@@ -79,7 +83,7 @@ export function ExecutionWorkspace({ run, method, results, selected, currentTime
         const observation = run.observations.find(o => o.stepId === requirement.id); const status = results[requirement.id]?.status;
         return <button key={requirement.id} data-step={requirement.id} className={`rail-item ${selected === requirement.id ? 'selected' : ''}`} aria-pressed={selected === requirement.id} onClick={() => onSelect(requirement.id)}>
           <span className="mono rail-number">{requirement.order.toString().padStart(2, '0')}</span>
-          <div><strong>{requirement.title}</strong><p>{requirement.description}</p><span className="rail-state"><StatusIcon status={status} size={12}/><span className={status}>{status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending'}</span><span className="mono">{observation ? `${time(observation.timestampStart)}–${time(observation.timestampEnd)}` : 'Not found'}</span></span></div>
+          <div><strong>{requirement.title}</strong><p>{requirement.description}</p><span className="rail-state"><StatusIcon status={status} size={12}/><span className={status}>{status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Pending'}</span>{details(results[requirement.id]).length > 0 && <span className="details-note">· details unconfirmed</span>}<span className="mono">{observation ? `${time(observation.timestampStart)}–${time(observation.timestampEnd)}` : 'Not found'}</span></span></div>
         </button>;
       })}</div>
     </aside>

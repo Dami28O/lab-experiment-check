@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { adjacentGroups, runAgent, unverifiableReason, toContract, type AgentCall } from '../src/lib/agent';
 import { verifyMethod } from '../src/lib/conformance';
 const method = toContract({ title: 'Mock', summary: '', steps: [
-  { title: 'Add reagent', description: 'Add reagent 1 to the tube.', defining_action: '', visual_group: '', checks: ['Tip enters the tube'], caveats: ['Sterility'], criticality: 'critical', category: 'action' },
-  { title: 'Incubate', description: 'Incubate 20 min.', defining_action: '', visual_group: '', checks: ['Tube left for 20 minutes'], caveats: [], criticality: 'important', category: 'timing' }
+  { title: 'Add reagent', description: 'Add reagent 1 to the tube.', defining_action: '', visual_group: '', checks: ['Tip enters the tube'], detail_checks: [], caveats: ['Sterility'], criticality: 'critical', category: 'action' },
+  { title: 'Incubate', description: 'Incubate 20 min.', defining_action: '', visual_group: '', checks: ['Tube left for 20 minutes'], detail_checks: [], caveats: [], criticality: 'important', category: 'timing' }
 ] }, 'mock.pdf');
 const findings = (steps: string[]) => ({ steps: steps.map(id => ({ step_id: id, found: id === 'step-01', absence: id === 'step-01' ? 'n/a' : 'not_performed', start_seconds: id === 'step-01' ? 2 : 0, end_seconds: id === 'step-01' ? 6 : 0, summary: 'Tip enters the tube.', check_results: [{ check_index: 0, result: 'confirmed', note: 'Visible at 4 s' }], evidence: [{ seconds: 4, description: 'Tip in tube' }], uncertainties: [], confidence: .9 })) });
 function scripted(turns: unknown[][]): { call: AgentCall; requests: unknown[][] } {
@@ -66,9 +66,15 @@ describe('Checks video cannot clearly establish', () => {
       expect(unverifiableReason(c), c).toBeUndefined();
   });
   it('rewrites the contract so only clearly visible checks reach the agent', () => {
-    const m = toContract({ title: 'T', summary: '', steps: [{ title: 'Add', description: 'Add 5 µL.', defining_action: '', visual_group: '', checks: ['Tip enters the tube', 'Pipette volume reads 5 µL'], caveats: [], criticality: 'critical', category: 'action' }] }, 'x');
+    const m = toContract({ title: 'T', summary: '', steps: [{ title: 'Add', description: 'Add 5 µL.', defining_action: '', visual_group: '', checks: ['Tip enters the tube', 'Pipette volume reads 5 µL'], detail_checks: [], caveats: [], criticality: 'critical', category: 'action' }] }, 'x');
     expect(m.requirements[0].checks).toEqual(['Tip enters the tube']);
     expect(m.requirements[0].caveats).toEqual(['Measured quantity, not verifiable from video: Pipette volume reads 5 µL']);
+  });
+  it('keeps detail checks separate, after the core ones, and filters them too', () => {
+    const m = toContract({ title: 'T', summary: '', steps: [{ title: 'Return plate', description: 'x', defining_action: '', visual_group: '', checks: ['Plate goes into the incubator'], detail_checks: ['Door is closed afterwards', 'Plate is held for about 5 seconds'], caveats: [], criticality: 'important', category: 'action' }] }, 'x');
+    expect(m.requirements[0].checks).toEqual(['Plate goes into the incubator', 'Door is closed afterwards']);
+    expect(m.requirements[0].details).toEqual(['Door is closed afterwards']);
+    expect(m.requirements[0].caveats).toEqual(['Exact duration or temperature, not verifiable from video: Plate is held for about 5 seconds']);
   });
   it('keeps look-alike groups only for consecutive steps', () => {
     expect(adjacentGroups(['', 'ice', 'heat', 'ice', ''])).toEqual([undefined, undefined, undefined, undefined, undefined]);
@@ -77,7 +83,7 @@ describe('Checks video cannot clearly establish', () => {
     expect(adjacentGroups(['spray', 'gather', 'spray'])).toEqual([undefined, undefined, undefined]);
   });
   it('carries the defining action and look-alike group into the contract, dropping empty ones', () => {
-    const step = (title: string, group: string) => ({ title, description: title, defining_action: `${title} action`, visual_group: group, checks: ['Tip enters the tube'], caveats: [], criticality: 'critical' as const, category: 'action' as const });
+    const step = (title: string, group: string) => ({ title, description: title, defining_action: `${title} action`, visual_group: group, checks: ['Tip enters the tube'], detail_checks: [], caveats: [], criticality: 'critical' as const, category: 'action' as const });
     const m = toContract({ title: 'T', summary: '', steps: [step('Add reagent 1', 'reagent addition'), step('Add reagent 2', 'reagent addition'), step('Mix', ' ')] }, 'x');
     expect(m.requirements.map(r => r.visualGroup)).toEqual(['reagent addition', 'reagent addition', undefined]);
     expect(m.requirements[2].definingAction).toBe('Mix action');

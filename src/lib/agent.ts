@@ -20,6 +20,7 @@ export const extractedMethodSchema = z.object({
     defining_action: z.string(),
     visual_group: z.string(),
     checks: z.array(z.string()),
+    detail_checks: z.array(z.string()),
     caveats: z.array(z.string()),
     criticality: z.enum(['informational', 'important', 'critical']),
     category: z.enum(['identity', 'timing', 'action', 'ordering'])
@@ -36,7 +37,9 @@ For each step:
 - description: the instruction as the document states it, keeping quantities, times and materials.
 - defining_action: the one visible action that tells this step apart from the steps around it, as a camera would see it. Be specific about how look-alike actions differ: an addition draws liquid from a source container and dispenses it into the target; mixing works within one tube (pipetting up and down in it, flicking, inverting) without drawing from another container; cleaning is spraying or wiping, whichever is used.
 - visual_group: if this step and the steps directly before or after it would look the same on camera (e.g. "add reagent 1", "add reagent 2", "add reagent 3" from unlabelled containers, one after another), give them the same short label ("reagent addition"); otherwise an empty string. Steps separated by a different action are told apart by it and are not grouped.
-- checks: only conditions a camera watching the bench could clearly confirm or refute: the action performed, a vessel or apparatus recognisable by its appearance or position, the order relative to other steps, a visible change of state. Two to four checks is typical. Write them at the level of purpose and accept equivalent visible means ("items are cleaned, by spraying or wiping, before entering the hood"; "the tube is heated in a water bath, heat block or thermal cycler"). Never claim something about every item ("each bottle is sprayed"): sampled frames cannot show that. If a step is a wait (e.g. "incubate 20 min"), the check is qualitative: the item is put in place and left there rather than moved on straight away.
+- checks: the core conditions that show the step was performed: its action, the vessel or apparatus it uses (recognisable by appearance or position), a visible change of state. One to three is typical.
+- detail_checks: conditions about how well or how completely it was done, or what follows it: manner ("the plate is held level"), technique ("the tip is placed at the well edge"), follow-through ("the incubator door is closed afterwards"), and order relative to other steps. A step whose core checks pass counts as done even if these cannot be seen. Often none.
+- Both kinds: only conditions a camera watching the bench could clearly confirm or refute. Write them at the level of purpose and accept equivalent visible means ("items are cleaned, by spraying or wiping, before entering the hood"; "the tube is heated in a water bath, heat block or thermal cycler"). Never claim something about every item ("each bottle is sprayed"): sampled frames cannot show that. If a step is a wait (e.g. "incubate 20 min"), the check is qualitative: the item is put in place and left there rather than moved on straight away.
 - caveats: everything the document requires that video cannot clearly establish. Always put these here, never in checks:
   - volumes, amounts, concentrations or any measured quantity (pipette settings, graduations, liquid levels);
   - identity that depends on reading a label or knowing contents (which reagent, which cell line);
@@ -80,12 +83,12 @@ export function toContract(extracted: ExtractedMethod, source: string): MethodCo
   return {
     schemaVersion: 1, title: extracted.title, version: '1.0', source, summary: extracted.summary,
     requirements: extracted.steps.map((s, i) => {
-      const checks = s.checks.filter(c => !unverifiableReason(c));
-      const moved = s.checks.flatMap(c => { const reason = unverifiableReason(c); return reason ? [`${reason}, not verifiable from video: ${c}`] : []; });
+      const core = s.checks.filter(c => !unverifiableReason(c)), details = s.detail_checks.filter(c => !unverifiableReason(c));
+      const moved = [...s.checks, ...s.detail_checks].flatMap(c => { const reason = unverifiableReason(c); return reason ? [`${reason}, not verifiable from video: ${c}`] : []; });
       return {
         id: `step-${String(i + 1).padStart(2, '0')}`, order: i + 1, title: s.title, description: s.description,
         definingAction: s.defining_action || undefined, visualGroup: groups[i],
-        checks: checks.length ? checks : [`${s.title} is visibly performed`], caveats: [...s.caveats, ...moved],
+        checks: [...core.length ? core : [`${s.title} is visibly performed`], ...details], details: details.length ? details : undefined, caveats: [...s.caveats, ...moved],
         criticality: s.criticality, category: s.category
       };
     })

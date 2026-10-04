@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LONG_WAIT_SECONDS, verifyRun, waitSeconds } from '../src/lib/conformance';
-import type { Absence, MethodContract, Observation } from '../src/lib/types';
+import type { Absence, MethodContract, Observation, ProtocolRequirement } from '../src/lib/types';
 
 const method: MethodContract = { schemaVersion: 1, title: 'Mock', version: '1', source: 'mock', requirements: [1, 2, 3, 4, 5].map(n => ({
   id: `s${n}`, order: n, title: `Step ${n}`, description: `Step ${n}`, checks: [`Step ${n} visible`], criticality: 'critical' as const, category: 'action' as const
@@ -79,4 +79,23 @@ describe('Sequence rules', () => {
     const fixture = (n: number, s: number, e: number) => ({ ...placed(n, s, e), provenance: 'annotation_assisted_visual_review' as const });
     expect(run([fixture(1, 30, 40), fixture(2, 0, 10)]).s1.status).toBe('verified');
   });
+});
+
+describe('Core and detail checks', () => {
+  const step: ProtocolRequirement = { id: 'p', order: 1, title: 'Return plate', description: 'Place the plate back in the incubator.', criticality: 'important' as const, category: 'action' as const,
+    checks: ['Plate is placed inside the incubator', 'The incubator door is closed afterwards'], details: ['The incubator door is closed afterwards'] };
+  const seen = (results: ('confirmed' | 'contradicted' | 'not_visible')[], confidence = .7): Observation => ({
+    ...placed(1, 0, 10, confidence), stepId: 'p', checkResults: step.checks!.map((check, i) => ({ check, result: results[i], note: '' }))
+  });
+  const verdict = (o: Observation, s = step) => verifyRun({ ...method, requirements: [s] }, { observations: [o], duration: 60 }).p;
+  it('verifies a done step and flags the unseen detail, without a separate status', () =>
+    expect(verdict(seen(['confirmed', 'not_visible']))).toMatchObject({ status: 'verified', unconfirmedDetails: ['The incubator door is closed afterwards'] }));
+  it('leaves no flag when every detail is seen', () =>
+    expect(verdict(seen(['confirmed', 'confirmed']))).not.toHaveProperty('unconfirmedDetails'));
+  it('stays unverifiable when the core action is not seen', () =>
+    expect(verdict(seen(['not_visible', 'confirmed']))).toMatchObject({ status: 'unverifiable', missingEvidence: ['Plate is placed inside the incubator'] }));
+  it('still contradicts on a clearly broken detail', () =>
+    expect(verdict(seen(['confirmed', 'contradicted'], .9)).status).toBe('contradicted'));
+  it('treats every check as core when the contract marks no details', () =>
+    expect(verdict(seen(['confirmed', 'not_visible']), { ...step, details: undefined }).status).toBe('unverifiable'));
 });

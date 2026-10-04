@@ -103,6 +103,7 @@ export function RecordView({ record, onStep, shareUrl }: { record: ExperimentRec
           <span className="mono step-no">{r.order.toString().padStart(2, '0')}</span>
           <span className="step-main"><strong>{r.title}</strong>
             {result.status === 'contradicted' && <em>Expected {text(result.expected)} — observed {text(result.observed)}</em>}
+            {result.status === 'verified' && result.unconfirmedDetails?.length ? <em className="details-note">Details unconfirmed: {result.unconfirmedDetails.join('; ')}</em> : null}
             {result.status === 'skipped' && <em>Not performed between {time(result.between[0])} and {time(result.between[1])}: {result.reason}</em>}
             {result.status === 'unverifiable' && <em>{o ? `Not established: ${result.missingEvidence.map(readable).join(', ')}` : 'Not found in the recording'}</em>}
           </span>

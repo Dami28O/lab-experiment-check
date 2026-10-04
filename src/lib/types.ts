@@ -7,6 +7,8 @@ export type ProtocolRequirement = {
   after?: string[]; before?: string[]; requiredEvidence?: string[];
   /** Visually checkable conditions extracted from the methodology. */
   checks?: string[];
+  /** The subset of checks about manner or follow-through; a step whose other (core) checks pass is done even if these are unseen. */
+  details?: string[];
   /** The one visible action that tells this step apart from its neighbours. */
   definingAction?: string;
   /** Shared by steps that look the same on camera (e.g. three reagent additions); they can only be told apart by order and count. */
@@ -29,7 +31,8 @@ export type Observation = {
 /** The agent's account of a step it could not locate: watched where it belongs and saw it not done, or could not see. */
 export type Absence = { stepId: string; reason: 'not_performed' | 'not_visible'; confidence: number; note: string };
 export type VerificationResult =
-  | { status: 'verified'; confidence: number; evidence: Evidence[] }
+  /** unconfirmedDetails: detail checks that could not be seen; the step is still done. */
+  | { status: 'verified'; confidence: number; evidence: Evidence[]; unconfirmedDetails?: string[] }
   | { status: 'contradicted'; confidence: number; expected: unknown; observed: unknown; evidence: Evidence[] }
   /** Inferred from absence: the neighbouring steps leave no room for it and the agent saw it not done there. */
   | { status: 'skipped'; confidence: number; reason: string; between: [number, number]; evidence: Evidence[] }

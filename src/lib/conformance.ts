@@ -14,11 +14,15 @@ export function verify(requirement: ProtocolRequirement, observations: Observati
     // An accusation needs more: a contradicted check counts only at MIN_CONFIDENCE, otherwise the step stays unverifiable.
     const deviation = o.checkResults.find(c => c.result === 'contradicted');
     if (deviation && o.confidence >= MIN_CONFIDENCE) return conflict(deviation.check, deviation.note);
-    const unresolved = o.checkResults.filter(c => c.result !== 'confirmed').map(c => c.check);
-    const unchecked = (requirement.checks ?? []).filter(c => !o.checkResults!.some(r => r.check === c));
+    // Core checks decide whether the step was done; detail checks (manner, follow-through) only annotate a done step.
+    const isDetail = (check: string) => requirement.details?.includes(check) ?? false;
+    const confirmed = (check: string) => o.checkResults!.some(r => r.check === check && r.result === 'confirmed');
+    const open = [...new Set([...o.checkResults.map(c => c.check), ...requirement.checks ?? []])].filter(c => !confirmed(c));
+    const unresolved = open.filter(c => !isDetail(c));
     if (!o.evidence.length) unresolved.push('timestamped evidence');
-    if (unresolved.length || unchecked.length) return unknown('Part of this step is visible, but not every condition can be established from the recording.', [...unresolved, ...unchecked]);
-    return { status: 'verified', confidence: o.confidence, evidence: o.evidence };
+    if (unresolved.length) return unknown('Part of this step is visible, but not every condition can be established from the recording.', unresolved);
+    const unconfirmedDetails = open.filter(isDetail);
+    return { status: 'verified', confidence: o.confidence, evidence: o.evidence, ...(unconfirmedDetails.length && { unconfirmedDetails }) };
   }
   const missing: string[] = [];
   // A mismatch only counts when the field is explicitly established by evidence.

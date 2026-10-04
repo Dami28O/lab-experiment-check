@@ -20,6 +20,7 @@ code { font-family: var(--mono); font-size: .92em; background: var(--soft); padd
 .small { font-size: 12px; }
 .label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; }
 .verified { color: var(--pass); } .contradicted, .skipped { color: var(--fail); } .unverifiable { color: var(--warn); }
+.details-note { color: var(--warn); font-size: 12px; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
